@@ -53,7 +53,7 @@ tyf_backend/
 Create or update `.env` in the `tyf_backend/` directory:
 
 ```env
-PROJECT_NAME="tyfbackend"
+PROJECT_NAME="TYF - Track Your Finances"
 API_V1_STR="/v1"
 DB_CONNECTION="postgresql://postgres:password@localhost:5432/tyf"
 ```

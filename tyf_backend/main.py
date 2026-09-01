@@ -1,6 +1,14 @@
 import logging
+import sys
 import warnings
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+# Ensure tyf_backend folder is in sys.path
+backend_dir = Path(__file__).resolve().parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from urllib3.exceptions import NotOpenSSLWarning
@@ -8,6 +16,7 @@ from urllib3.exceptions import NotOpenSSLWarning
 from config.settings import settings
 from db.init_db import init_db
 from endpoints.v1.router import api_router
+
 
 # Suppress MacOS default LibreSSL urllib3 warning
 warnings.filterwarnings("ignore", category=NotOpenSSLWarning)
@@ -45,4 +54,11 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+
 

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Quick dev launcher for Track Your Finances (TYF)
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Activate virtual environment if available
+if [ -f "$DIR/.venv/bin/activate" ]; then
+    source "$DIR/.venv/bin/activate"
+fi
+
+exec uvicorn main:app --reload --port 8000 "$@"

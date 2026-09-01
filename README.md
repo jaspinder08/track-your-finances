@@ -33,24 +33,30 @@ TYF/
 
 ### 2. Running the Backend (`tyf_backend`)
 
+You can use any of these ultra-short commands from the project root `TYF/`:
+
 ```bash
-# Navigate to backend directory
-cd tyf_backend
+# Option 1: Direct launcher script (automatically activates venv)
+./dev
 
-# Activate virtual environment
-source ../.venv/bin/activate
+# Option 2: Make shortcut
+make dev
 
-# Install dependencies (if not already installed)
-pip install -r requirements.txt
+# Option 3: Python directly
+python main.py
+```
 
-# Start FastAPI server with live-reload
+Or using standard `uvicorn`:
+```bash
 uvicorn main:app --reload --port 8000
 ```
+
 - **API URL**: `http://127.0.0.1:8000`
 - **Interactive Swagger Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
 👉 See [tyf_backend/README.md](file:///Users/jassi/Desktop/Personal/TYF/tyf_backend/README.md) for full backend documentation.
+
 
 ---
 
