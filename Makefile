@@ -7,13 +7,17 @@ help:
 	@echo "  make mobile   - Run Flutter mobile application"
 	@echo "  make clean    - Remove cache directories & temp files"
 
+VENV := $(shell if [ -d ".venv/bin" ]; then echo ".venv/bin/"; fi)
+UVICORN := $(VENV)uvicorn
+PYTEST := $(VENV)pytest
+
 dev:
-	@uvicorn main:app --reload --port 8000
+	@$(UVICORN) main:app --reload --port 8000
 
 run: dev
 
 test:
-	@pytest tyf_backend/tests
+	@$(PYTEST) tyf_backend/tests
 
 mobile:
 	@cd tyf_mobile && flutter run
