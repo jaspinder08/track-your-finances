@@ -143,3 +143,4 @@ cython_debug/
 ehthumbs.db
 Thumbs.db
 .venv/
+pythonCrashCourse/

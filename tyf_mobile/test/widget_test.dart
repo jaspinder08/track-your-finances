@@ -1,30 +1,32 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:tyf_mobile/main.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:tyf_mobile/app/app.dart';
+import 'package:tyf_mobile/core/utils/money.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUpAll(() => initializeDateFormatting('en_IN'));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('shell shows balance, tabs switch, + opens add sheet', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const ProviderScope(child: TyfApp()));
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('₹0'), findsWidgets);
+    expect(find.text('Mon'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.byTooltip('Budgets').first);
+    await tester.pumpAndSettle();
+    expect(find.text('No budgets yet'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Add transaction'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add expense'), findsOneWidget);
+  });
+
+  test('Money formats paise as INR with Indian grouping', () {
+    expect(Money.format(520000), '₹5,200');
+    expect(Money.format(1000000000), '₹1,00,00,000');
   });
 }
