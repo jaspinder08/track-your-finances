@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tyf_mobile/features/categories/data/category_repository.dart';
 import 'package:tyf_mobile/core/utils/money.dart';
 import 'package:tyf_mobile/features/transactions/screens/add_transaction_sheet.dart';
 
@@ -8,7 +10,14 @@ Future<void> _pump(WidgetTester tester) async {
   tester.view.devicePixelRatio = 2.6;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    const MaterialApp(home: Scaffold(body: AddTransactionSheet())),
+    ProviderScope(
+      overrides: [
+        categoryRepositoryProvider.overrideWithValue(
+          InMemoryCategoryRepository(),
+        ),
+      ],
+      child: const MaterialApp(home: Scaffold(body: AddTransactionSheet())),
+    ),
   );
   await tester.pumpAndSettle();
 }
@@ -102,11 +111,21 @@ void main() {
     tester.view.devicePixelRatio = 2.6;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: accent, primary: accent),
+      ProviderScope(
+        overrides: [
+          categoryRepositoryProvider.overrideWithValue(
+            InMemoryCategoryRepository(),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: accent,
+              primary: accent,
+            ),
+          ),
+          home: const Scaffold(body: AddTransactionSheet()),
         ),
-        home: const Scaffold(body: AddTransactionSheet()),
       ),
     );
     await tester.pumpAndSettle();

@@ -81,4 +81,70 @@ void main() {
     all = await repo.all();
     expect(all.map((e) => e.type), [EntryType.goal]);
   });
+
+  test('update changes fields and marks synced rows pending_update', () async {
+    final e = await repo.add(
+      EntryDraft(
+        type: EntryType.expense,
+        amountPaise: 10000,
+        date: DateTime(2026, 11, 20),
+        name: 'Tea',
+        category: 'Food',
+      ),
+    );
+    Future<String> status() async =>
+        (await (await helper.database).query(
+              EntryTable.tableName,
+            )).single[EntryTable.colSyncStatus]
+            as String;
+
+    await repo.update(
+      e,
+      EntryDraft(
+        type: EntryType.expense,
+        amountPaise: 12550,
+        date: DateTime(2026, 11, 21),
+        name: 'Tea & snacks',
+        category: 'Food',
+        subcategory: 'Snacks',
+      ),
+    );
+    var saved = (await repo.all()).single;
+    expect(saved.id, e.id);
+    expect(saved.amountPaise, 12550);
+    expect(saved.date, DateTime(2026, 11, 21));
+    expect(saved.data.subcategory, 'Snacks');
+    expect(await status(), 'pending_create'); // never synced yet
+
+    await (await helper.database).update(EntryTable.tableName, {
+      EntryTable.colSyncStatus: 'synced',
+    });
+    await repo.update(
+      saved,
+      EntryDraft(
+        type: EntryType.expense,
+        amountPaise: 13000,
+        date: saved.date,
+        category: 'Food',
+      ),
+    );
+    saved = (await repo.all()).single;
+    expect(saved.data.name, isNull);
+    expect(await status(), 'pending_update');
+  });
+
+  test('series_id round-trips through SQLite', () async {
+    final root = await repo.add(
+      EntryDraft(
+        type: EntryType.expense,
+        amountPaise: 100,
+        date: DateTime(2026, 10, 1),
+        repeat: const Repeat(every: 1, unit: RepeatUnit.month),
+      ),
+    );
+    expect(await createDueRecurring(repo, DateTime(2026, 11, 22)), 1);
+    final copy = (await repo.all()).firstWhere((e) => e.id != root.id);
+    expect(copy.seriesId, root.id);
+    expect(copy.date, DateTime(2026, 11, 1));
+  });
 }
