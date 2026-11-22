@@ -1,4 +1,4 @@
-package com.example.tyf_mobile
+package com.jassi.tyf_mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

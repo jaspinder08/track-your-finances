@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276498180118",
+    "project_id": "tyf---track-your-finances",
+    "storage_bucket": "tyf---track-your-finances.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276498180118:android:56c9e34398df1d527dad37",
+        "android_client_info": {
+          "package_name": "com.jassi.tyf_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZx7KRiI0n40d4OupX7rOaSL9cIcZxKk8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
