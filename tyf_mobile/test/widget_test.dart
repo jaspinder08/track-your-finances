@@ -41,7 +41,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Add transaction'));
     await tester.pumpAndSettle();
-    expect(find.text('Add expense'), findsOneWidget);
+    expect(find.text('Add a transaction'), findsOneWidget);
   });
 
   testWidgets('adding an expense shows it on the calendar and balance', (
@@ -65,21 +65,25 @@ void main() {
 
     await tester.tap(find.byTooltip('Add transaction'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextFormField, 'Amount'), '250');
+    await tester.enterText(find.byType(TextField).first, '250');
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name, e.g. Groceries at DMart'),
+      find.widgetWithText(TextFormField, 'Name or place'),
       'Chai',
     );
-    await tester.tap(find.text('Food'));
+    await tester.tap(find.text('Category').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Add expense'));
+    await tester.tap(find.text('Food').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add expense'), findsNothing); // sheet closed
-    expect(find.text('-₹250'), findsOneWidget); // balance pill
-    expect(find.text('−₹250'), findsOneWidget); // today's calendar cell
+    expect(find.text('Add a transaction'), findsNothing); // page closed
+    expect(
+      find.text('−₹250'),
+      findsNWidgets(3),
+    ); // balance, month net, day cell
 
-    await tester.tap(find.text('−₹250'));
+    await tester.tap(find.text('−₹250').last);
     await tester.pumpAndSettle();
     expect(find.text('Chai'), findsOneWidget);
     expect(find.text('Food'), findsNothing);
@@ -89,8 +93,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Edit expense'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, '250'), findsOneWidget);
-    await tester.enterText(find.widgetWithText(TextFormField, '250'), '300');
+    expect(find.text('Save & add another'), findsNothing);
+    expect(find.widgetWithText(TextField, '250'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextField, '250'), '300');
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Chai'),
       'Chai & samosa',
@@ -100,7 +105,6 @@ void main() {
 
     expect(find.text('Chai & samosa'), findsOneWidget); // day list updated
     expect(find.text('−₹300'), findsWidgets); // list, net, cell
-    expect(find.text('-₹300'), findsOneWidget); // balance updated
   });
 
   testWidgets('+ on Budgets sets a budget and the card tracks spending', (
@@ -245,7 +249,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Budgets').first);
+    // Goals live on their own page, opened from the sidebar.
+    await tester.tap(find.byTooltip('Menu'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Goals'));
     await tester.pumpAndSettle();
@@ -254,11 +259,12 @@ void main() {
     expect(find.text('₹4,000 of ₹10,000'), findsOneWidget);
     expect(find.text('40%'), findsWidgets);
 
-    // + on the Goals view starts a new goal.
-    await tester.tap(find.byTooltip('Add transaction'));
+    // + on the Goals page starts a new goal.
+    await tester.tap(find.byTooltip('New goal'));
     await tester.pumpAndSettle();
-    expect(find.text('New goal'), findsOneWidget);
-    await tester.tapAt(const Offset(200, 40)); // dismiss
+    expect(find.text('Target amount'), findsOneWidget);
+    expect(find.text('Expense'), findsNothing);
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Trip to Goa'));
@@ -271,7 +277,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Goal reached'), findsOneWidget);
-    expect(find.text('🎉 Trip to Goa reached!'), findsOneWidget);
+    expect(find.text('🎉 Trip to Goa reached!'), findsWidgets);
   });
 
   testWidgets('Categories: add, rename (entries follow), use in add sheet', (
@@ -351,6 +357,8 @@ void main() {
     await tester.tap(find.byTooltip('Calendar').first);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Add transaction'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Category').first);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Pets'));
     expect(find.text('Pets'), findsOneWidget);

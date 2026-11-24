@@ -10,7 +10,7 @@ plugins {
 android {
     namespace = "com.jassi.tyf_mobile"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // sqflite and shared_preferences need NDK 27
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
