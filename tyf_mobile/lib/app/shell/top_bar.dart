@@ -12,6 +12,7 @@ class TopBar extends StatelessWidget {
     required this.onMenu,
     required this.onReports,
     this.onBalance,
+    this.compact = false,
   });
 
   final int balancePaise;
@@ -21,11 +22,16 @@ class TopBar extends StatelessWidget {
   /// Tapping the balance pill (opens Accounts).
   final VoidCallback? onBalance;
 
+  /// Slimmer bar once the page is scrolled, to give lists more room.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.fromLTRB(16, compact ? 2 : 8, 16, compact ? 2 : 8),
       child: Row(
         children: [
           RoundIconButton(
@@ -36,8 +42,13 @@ class TopBar extends StatelessWidget {
           const Spacer(),
           GestureDetector(
             onTap: onBalance,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: compact ? 4 : 8,
+              ),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.6,
@@ -46,15 +57,20 @@ class TopBar extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Text(
-                    'BALANCE',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    child: compact
+                        ? const SizedBox(width: 0, height: 0)
+                        : Text(
+                            'BALANCE',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: compact ? 0 : 2),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     transitionBuilder: (c, a) => FadeTransition(

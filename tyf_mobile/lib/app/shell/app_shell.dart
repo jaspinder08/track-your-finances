@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design/motion.dart';
@@ -10,6 +11,7 @@ import '../../features/categories/screens/categories_screen.dart';
 import '../../features/categories/widgets/category_editor_sheet.dart';
 import '../../features/budgets/data/budget_repository.dart';
 import '../../core/navigation/page_route.dart';
+import '../../features/accounts/account_balances.dart';
 import '../../features/accounts/accounts_screen.dart';
 import '../../features/insights/insights_sheet.dart';
 import '../../features/onboarding/setup_sheet.dart';
@@ -36,6 +38,9 @@ class _AppShellState extends ConsumerState<AppShell>
   int _index = 0;
   final _visits = [1, 0, 0, 0];
 
+  /// Per tab: scrolled down enough to slim the header.
+  final _scrolled = [false, false, false, false];
+
   /// Fades and lifts the tab in when you switch to it.
   late final _switch = AnimationController(
     vsync: this,
@@ -45,6 +50,7 @@ class _AppShellState extends ConsumerState<AppShell>
 
   void _go(int i) {
     if (i == _index) return;
+    HapticFeedback.selectionClick();
     setState(() {
       _index = i;
       _visits[i]++;
@@ -114,7 +120,12 @@ class _AppShellState extends ConsumerState<AppShell>
         child: Column(
           children: [
             TopBar(
-              balancePaise: ref.watch(balanceProvider),
+              // Same total as the Accounts page (includes balances set there).
+              balancePaise: ref
+                  .watch(accountBalancesProvider)
+                  .values
+                  .fold(0, (s, v) => s + v),
+              compact: _scrolled[_index],
               onMenu: () => _scaffoldKey.currentState?.openDrawer(),
               onBalance: () => Navigator.of(
                 context,
@@ -143,7 +154,22 @@ class _AppShellState extends ConsumerState<AppShell>
                     index: _index,
                     children: [
                       for (var i = 0; i < _pages.length; i++)
-                        TabVisit(visits: _visits[i], child: _pages[i]),
+                        TabVisit(
+                          visits: _visits[i],
+                          child: NotificationListener<ScrollUpdateNotification>(
+                            onNotification: (n) {
+                              if (n.metrics.axis != Axis.vertical) {
+                                return false;
+                              }
+                              final down = n.metrics.pixels > 24;
+                              if (down != _scrolled[i]) {
+                                setState(() => _scrolled[i] = down);
+                              }
+                              return false;
+                            },
+                            child: _pages[i],
+                          ),
+                        ),
                     ],
                   ),
                 ),

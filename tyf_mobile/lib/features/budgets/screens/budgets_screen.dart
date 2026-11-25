@@ -372,12 +372,14 @@ class _UnbudgetedTile extends ConsumerWidget {
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         child: Text(emoji, style: const TextStyle(fontSize: 20)),
       ),
-      title: Text(name),
-      subtitle: Text('${Money.format(paise)} spent this month'),
+      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Text('${Money.format(paise)} this month'),
       trailing: FilledButton.tonal(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           visualDensity: VisualDensity.compact,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
         onPressed: () => showBudgetSheet(context, category: name),
         child: const Text('Set budget'),

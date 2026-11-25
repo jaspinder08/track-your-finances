@@ -106,11 +106,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-          child: _MonthStrip(
-            income: monthIncome,
-            expense: monthExpense,
-            perDay: daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
-          ),
+          child: byDay.isEmpty
+              ? const _FirstRunHint()
+              : _MonthStrip(
+                  income: monthIncome,
+                  expense: monthExpense,
+                  perDay: daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
+                ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -421,4 +423,49 @@ class _CellAmount extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Shown until the first entry: what to do, instead of a row of ₹0.
+class _FirstRunHint extends StatelessWidget {
+  const _FirstRunHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Text('👋', style: TextStyle(fontSize: 26)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add your first transaction',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Tap any day below, or the + button, to note what you '
+                  'spent or earned.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

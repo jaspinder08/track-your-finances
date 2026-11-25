@@ -141,6 +141,10 @@ void main() {
 
     await tab('Budgets');
     await shot('03_budgets');
+    await tester.drag(find.text('Category budgets'), const Offset(0, -300));
+    await shot('03b_budgets_scrolled');
+    await tester.drag(find.text('Spending without a budget'), const Offset(0, 900));
+    await tester.pumpAndSettle();
     await tab('Categories');
     await shot('04_categories');
     await tab('Reports');

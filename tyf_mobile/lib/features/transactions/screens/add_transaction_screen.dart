@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -214,7 +215,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   /// Validates and saves. With [another], clears the form and stays open.
   Future<void> _save({bool another = false}) async {
-    if (_saving || !_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) {
+      HapticFeedback.heavyImpact(); // something's missing
+      return;
+    }
+    HapticFeedback.mediumImpact();
     setState(() => _saving = true);
     final draft = _draft();
     final messenger = ScaffoldMessenger.of(context);
