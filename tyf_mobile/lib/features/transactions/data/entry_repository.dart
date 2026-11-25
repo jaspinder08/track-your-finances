@@ -22,6 +22,9 @@ abstract class EntryRepository {
   Future<Entry> update(Entry entry, EntryDraft draft);
   Future<void> delete(String id);
 
+  /// Brings back an entry deleted by mistake (Undo).
+  Future<void> restore(String id);
+
   /// Renames a category on every entry of [type] that uses it.
   Future<void> renameCategory(EntryType type, String from, String to);
 }
@@ -103,6 +106,21 @@ class SqliteEntryRepository implements EntryRepository {
       {
         EntryTable.colIsDeleted: 1,
         EntryTable.colSyncStatus: 'pending_delete',
+        EntryTable.colUpdatedAt: DateTime.now().toUtc().toIso8601String(),
+      },
+      where: '${EntryTable.colId} = ?',
+      whereArgs: [id],
+    );
+  }
+
+  @override
+  Future<void> restore(String id) async {
+    final db = await _helper.database;
+    await db.update(
+      EntryTable.tableName,
+      {
+        EntryTable.colIsDeleted: 0,
+        EntryTable.colSyncStatus: 'pending_update',
         EntryTable.colUpdatedAt: DateTime.now().toUtc().toIso8601String(),
       },
       where: '${EntryTable.colId} = ?',
@@ -264,6 +282,22 @@ class InMemoryEntryRepository implements EntryRepository {
     }
     _items.removeWhere((e) => e.id == id);
   }
+
+  @override
+  Future<void> restore(String id) async {
+    for (final e in _deleted.where((e) => e.id == id)) {
+      _items.add(
+        Entry(
+          id: e.id,
+          data: e.data,
+          createdAt: e.createdAt,
+          updatedAt: DateTime.now().toUtc(),
+          seriesId: e.seriesId,
+        ),
+      );
+    }
+    _deleted.removeWhere((e) => e.id == id);
+  }
 }
 
 final entryRepositoryProvider = Provider<EntryRepository>(
@@ -307,6 +341,21 @@ class EntriesNotifier extends AsyncNotifier<List<Entry>> {
       for (final e in state.value ?? const <Entry>[])
         if (e.id != id) e,
     ]);
+  }
+
+  /// Undoes [delete].
+  Future<void> restore(String id) async {
+    await _repo.restore(id);
+    state = AsyncData(await _repo.all());
+  }
+
+  /// Adds a one-off copy of [entry] dated [day] (today by default).
+  Future<void> duplicate(Entry entry, {DateTime? day}) async {
+    final now = DateTime.now();
+    await _repo.add(
+      entry.data.copyFor(day ?? DateTime(now.year, now.month, now.day)),
+    );
+    state = AsyncData(await _repo.all());
   }
 }
 

@@ -8,8 +8,10 @@ import '../../transactions/data/entry_repository.dart';
 import '../../categories/data/category_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
+import '../../transactions/widgets/swipe_entry.dart';
 
-/// Lists one day's entries. Tap one to edit it; swipe left to delete it.
+/// Lists one day's entries. Tap to edit; swipe left to delete (with
+/// Undo), right to duplicate to today.
 Future<void> showDayEntriesSheet(BuildContext context, DateTime day) async {
   final addMore = await showModalBottomSheet<bool>(
     context: context,
@@ -74,20 +76,8 @@ class DayEntriesSheet extends ConsumerWidget {
                 shrinkWrap: true,
                 children: [
                   for (final e in entries)
-                    Dismissible(
-                      key: ValueKey(e.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        color: theme.colorScheme.errorContainer,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 24),
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: theme.colorScheme.onErrorContainer,
-                        ),
-                      ),
-                      onDismissed: (_) =>
-                          ref.read(entriesProvider.notifier).delete(e.id),
+                    SwipeEntry(
+                      entry: e,
                       child: EntryTile(entry: e),
                     ),
                 ],
@@ -129,6 +119,9 @@ class EntryTile extends ConsumerWidget {
     final d = entry.data;
     final emoji = ref.watch(categorySetProvider).emojiFor(d.category);
     final subtitle = [
+      if (d.category != null && d.category != entry.title) d.category,
+      if (entry.type == EntryType.transfer && d.name != null)
+        '${d.fromAccount ?? '?'} → ${d.toAccount ?? '?'}',
       if (d.subcategory != null) d.subcategory,
       if (d.paymentMethod != null) d.paymentMethod,
       if (d.repeat != null) 'Repeats',

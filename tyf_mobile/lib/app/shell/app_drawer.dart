@@ -10,6 +10,7 @@ import '../../features/account/screens/sign_in_screen.dart';
 import '../../features/account/screens/sign_out_flow.dart';
 import '../../features/account/screens/profile_screen.dart';
 import '../../features/help/how_to_screen.dart';
+import '../../features/history/history_screen.dart';
 import '../../features/goals/screens/goals_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 
@@ -139,6 +140,11 @@ class AppDrawer extends ConsumerWidget {
                 ),
               const Divider(),
               const SizedBox(height: 8),
+              item(
+                Icons.receipt_long_outlined,
+                'All transactions',
+                () => open(const HistoryScreen()),
+              ),
               item(
                 Icons.flag_outlined,
                 'Goals',

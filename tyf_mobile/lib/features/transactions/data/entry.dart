@@ -34,6 +34,21 @@ class EntryDraft {
   /// Set when the entry repeats, e.g. rent every 1 month.
   final Repeat? repeat;
 
+  /// A one-off copy for [day] (used by "Duplicate"): same details, no
+  /// repeat, so copying rent doesn't start a second series.
+  EntryDraft copyFor(DateTime day) => EntryDraft(
+    type: type,
+    amountPaise: amountPaise,
+    date: day,
+    name: name,
+    description: description,
+    category: category,
+    subcategory: subcategory,
+    paymentMethod: paymentMethod,
+    fromAccount: fromAccount,
+    toAccount: toAccount,
+  );
+
   /// Same draft with a new saved amount (used by goal contributions).
   EntryDraft withSaved(int savedPaise) => EntryDraft(
     type: type,
