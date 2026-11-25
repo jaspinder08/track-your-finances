@@ -7,10 +7,13 @@ import '../../core/design/design.dart';
 import '../../core/navigation/page_route.dart';
 import '../../features/account/data/account.dart';
 import '../../features/account/screens/sign_in_screen.dart';
+import '../../features/account/screens/sign_out_flow.dart';
+import '../../features/account/screens/profile_screen.dart';
+import '../../features/help/how_to_screen.dart';
 import '../../features/goals/screens/goals_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 
-/// Side menu: greeting, quick dark-mode switch, and secondary pages.
+/// Side menu: greeting, account card, and secondary pages.
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
@@ -90,7 +93,7 @@ class AppDrawer extends ConsumerWidget {
                             ),
                             if (!account.isGuest)
                               Text(
-                                _syncLabel(sync),
+                                syncLabel(sync),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -144,7 +147,7 @@ class AppDrawer extends ConsumerWidget {
               item(
                 Icons.person_outline_rounded,
                 'Profile',
-                () => Navigator.pop(context),
+                () => open(const ProfileScreen()),
               ),
               item(
                 Icons.settings_outlined,
@@ -154,13 +157,13 @@ class AppDrawer extends ConsumerWidget {
               item(
                 Icons.school_outlined,
                 'How to use TYF',
-                () => Navigator.pop(context),
+                () => open(const HowToScreen()),
               ),
               if (!account.isGuest)
                 item(
                   Icons.logout_rounded,
                   'Sign out',
-                  () => _signOut(context, ref),
+                  () => confirmSignOut(context, ref),
                 ),
               const Spacer(),
               Padding(
@@ -180,7 +183,7 @@ class AppDrawer extends ConsumerWidget {
   }
 }
 
-String _syncLabel(SyncStatus s) {
+String syncLabel(SyncStatus s) {
   if (s.syncing) return 'Backing up…';
   if (s.error != null) return s.error!;
   final at = s.lastSyncedAt;
@@ -194,59 +197,4 @@ String _syncLabel(SyncStatus s) {
       ? '${ago.inHours} h ago'
       : '${ago.inDays} d ago';
   return 'Backed up $when';
-}
-
-Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-  final ok = await showDialog<bool>(
-    context: context,
-    builder: (c) => AlertDialog(
-      title: const Text('Sign out?'),
-      content: const Text(
-        'Your data is backed up to your account and will be removed from '
-        'this phone. Sign in again any time to get it back.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(c, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(c, true),
-          child: const Text('Sign out'),
-        ),
-      ],
-    ),
-  );
-  if (ok != true || !context.mounted) return;
-  final account = ref.read(accountProvider.notifier);
-  if (await account.signOut()) {
-    if (context.mounted) Navigator.pop(context); // close the sidebar
-    return;
-  }
-  if (!context.mounted) return;
-  // Backup didn't finish (usually no internet).
-  final force = await showDialog<bool>(
-    context: context,
-    builder: (c) => AlertDialog(
-      title: const Text('Not backed up yet'),
-      content: const Text(
-        'Some changes haven\'t reached your account, usually because '
-        'there\'s no internet. If you sign out now, they will be lost.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(c, true),
-          child: const Text('Sign out anyway'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(c, false),
-          child: const Text('Stay signed in'),
-        ),
-      ],
-    ),
-  );
-  if (force == true) {
-    await account.signOut(force: true);
-    if (context.mounted) Navigator.pop(context);
-  }
 }

@@ -149,6 +149,10 @@ void main() {
 
     await tester.tap(find.byTooltip('Add transaction').first);
     await shot('06_add_form');
+    await tester.tap(find.text('Today').first);
+    await shot('06b_date_sheet');
+    await tester.tapAt(const Offset(200, 40));
+    await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpAndSettle();
 
@@ -156,6 +160,19 @@ void main() {
     await shot('07_drawer');
     await tester.tap(find.text('Goals'));
     await shot('08_goals');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Menu').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await shot('08b_profile');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Menu').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('How to use TYF'));
+    await shot('08c_how_to');
     await tester.pageBack();
     await tester.pumpAndSettle();
 

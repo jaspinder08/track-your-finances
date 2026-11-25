@@ -310,10 +310,15 @@ class EntriesNotifier extends AsyncNotifier<List<Entry>> {
   }
 }
 
-/// Income minus expense across all entries.
+/// Income minus expense up to today. Entries dated in the future (e.g.
+/// next month's rent added early) count once their day arrives.
 final balanceProvider = Provider<int>((ref) {
   final entries = ref.watch(entriesProvider).value ?? const [];
-  return entries.fold(0, (sum, e) => sum + e.balanceEffect);
+  final now = DateTime.now();
+  final endOfToday = DateTime(now.year, now.month, now.day + 1);
+  return entries
+      .where((e) => e.date.isBefore(endOfToday))
+      .fold(0, (sum, e) => sum + e.balanceEffect);
 });
 
 /// Entries grouped by calendar day.

@@ -43,7 +43,12 @@ List<Insight> buildInsights({
   final out = <Insight>[];
 
   // 1. Safe to spend per day, from budgets if set, else from income.
+  final over = budgets.where((b) => b.isOver).toList();
+  final overNames = over
+      .map((b) => '${b.budget.category} by ${Money.format(-b.leftPaise)}')
+      .join(', ');
   final limit = budgets.fold(0, (s, b) => s + b.budget.limitPaise);
+  var overShown = false;
   final spentInBudgets = budgets.fold(0, (s, b) => s + b.spentPaise);
   if (limit > 0) {
     final left = limit - spentInBudgets;
@@ -58,10 +63,12 @@ List<Insight> buildInsights({
           : Insight(
               '🚨',
               'Budgets used up',
-              "You've spent ${Money.format(-left)} more than your budgets allow this month.",
+              "You've spent ${Money.format(-left)} more than your budgets allow this month"
+                  '${over.isEmpty ? '.' : ': $overNames.'}',
               tone: FinanceColors.expense,
             ),
     );
+    overShown = left <= 0;
   } else if (r.income > 0) {
     final left = r.income - r.expense;
     out.add(
@@ -109,18 +116,15 @@ List<Insight> buildInsights({
   }
 
   // 3. Budgets needing attention.
-  final over = budgets.where((b) => b.isOver).toList();
   final near = budgets.where((b) => b.isNear).toList();
-  if (over.isNotEmpty) {
+  if (over.isNotEmpty && !overShown) {
     out.add(
       Insight(
         '⚠️',
         over.length == 1
             ? '${over.first.budget.category} is over budget'
             : '${over.length} budgets are over',
-        over
-            .map((b) => '${b.budget.category} by ${Money.format(-b.leftPaise)}')
-            .join(', '),
+        overNames,
         tone: FinanceColors.expense,
       ),
     );

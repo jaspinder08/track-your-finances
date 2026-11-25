@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../core/design/design.dart';
 import '../../../core/navigation/page_route.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/widgets/date_sheet.dart';
 import '../../categories/data/category_repository.dart';
 import '../data/entry.dart';
 import '../data/entry_repository.dart';
@@ -543,12 +544,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   Future<void> _pickDate() async {
     FocusScope.of(context).unfocus();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
+    final picked = await showDateSheet(context, initial: _date);
     if (picked != null) setState(() => _date = picked);
   }
 

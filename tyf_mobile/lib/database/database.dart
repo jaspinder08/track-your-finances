@@ -1,4 +1,6 @@
 /// Barrel export for TYF local database layer.
+library;
+
 export 'database_helper.dart';
 
 // Tables

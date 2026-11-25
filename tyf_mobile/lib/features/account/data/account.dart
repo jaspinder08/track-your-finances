@@ -157,6 +157,14 @@ class AccountNotifier extends Notifier<AccountState> {
     }
   }
 
+  /// Changes the name shown in the app.
+  Future<void> rename(String name) async {
+    final n = name.trim();
+    if (n.isEmpty) return;
+    await _prefs?.setString(_kName, n);
+    ref.invalidateSelf();
+  }
+
   Future<void> signedIn(String email) async {
     await _prefs?.setString(_kEmail, email);
     ref.invalidateSelf();

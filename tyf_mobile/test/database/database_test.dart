@@ -12,7 +12,6 @@ void main() {
   late UserDao userDao;
   late CategoryDao categoryDao;
   late TransactionDao transactionDao;
-  late BudgetDao budgetDao;
   late SyncQueueDao syncQueueDao;
 
   const uuid = Uuid();
@@ -50,7 +49,7 @@ void main() {
     userDao = UserDao(db);
     categoryDao = CategoryDao(db);
     transactionDao = TransactionDao(db);
-    budgetDao = BudgetDao(db);
+    BudgetDao(db);
     syncQueueDao = SyncQueueDao(db);
 
     // Seed test user

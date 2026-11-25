@@ -56,4 +56,26 @@ void main() {
     );
     expect(list.map((i) => i.title), contains('Add a few transactions'));
   });
+
+  test('over budget shows once, with the categories named', () {
+    final list = buildInsights(
+      entries: [e(EntryType.expense, 3000, DateTime(2026, 11, 5))],
+      budgets: const [
+        BudgetProgress(
+          CategoryBudget(category: 'Food', limitPaise: 200000),
+          300000,
+          null,
+        ),
+      ],
+      emojiFor: noEmoji,
+      now: now,
+    );
+    final titles = list.map((i) => i.title).toList();
+    expect(titles, contains('Budgets used up'));
+    expect(titles, isNot(contains('Food is over budget')));
+    expect(
+      list.firstWhere((i) => i.title == 'Budgets used up').detail,
+      contains('Food by ₹1,000'),
+    );
+  });
 }
