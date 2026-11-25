@@ -148,6 +148,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             '${entryCount == 0 ? 'Your data' : 'Your $entryCount entries'} '
             'are safe on this phone and will be saved to your account.',
       ),
+      SignInMode.daily when account.isFirstRun => (
+        'Welcome${account.name == null ? '' : ', ${account.name}'}!',
+        'Sign in to back up your data and use TYF on any phone. '
+            'Or try it as a guest, free for $trialDays days.',
+      ),
       SignInMode.daily => (
         'Hi${account.name == null ? '' : ', ${account.name}'}! Back up your data',
         'Create a free account so your entries are safe if you change phones.',
@@ -190,7 +195,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               height: 1.45,
             ),
           ),
-          if (widget.mode == SignInMode.daily) ...[
+          if (widget.mode == SignInMode.daily && !account.isFirstRun) ...[
             const SizedBox(height: AppSpace.md),
             Align(
               alignment: Alignment.centerLeft,
@@ -357,10 +362,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           if (widget.mode == SignInMode.daily) ...[
             const SizedBox(height: AppSpace.sm),
             TextButton(
-              onPressed: () =>
-                  ref.read(accountProvider.notifier).dismissForToday(),
+              onPressed: () {
+                // First run: guests get the setup sheet too.
+                if (account.isFirstRun) {
+                  ref.read(setupPromptProvider.notifier).request();
+                }
+                ref.read(accountProvider.notifier).dismissForToday();
+              },
               child: Text(
-                'Continue as guest · ${account.daysLeft(now)} days left',
+                account.isFirstRun
+                    ? 'Continue as guest · $trialDays-day free trial'
+                    : 'Continue as guest · ${account.daysLeft(now)} days left',
               ),
             ),
           ],

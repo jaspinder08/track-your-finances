@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/design/motion.dart';
 import '../../../core/utils/money.dart';
 import '../data/month_report.dart';
 
@@ -39,21 +40,26 @@ class DonutChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      key: ValueKey(slices.map((s) => '${s.name}${s.paise}').join()),
+      key: ValueKey(
+        '${TabVisit.of(context)}${slices.map((s) => '${s.name}${s.paise}').join()}',
+      ),
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 900),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 1100),
+      curve: Curves.easeOutQuart,
       builder: (context, t, child) => SizedBox.square(
         dimension: size,
-        child: CustomPaint(
-          painter: _DonutPainter(
-            slices.map((s) => s.share).toList(),
-            colors,
-            t,
-            selected,
-            Theme.of(context).colorScheme.surface,
+        child: Transform.scale(
+          scale: 0.85 + 0.15 * t,
+          child: CustomPaint(
+            painter: _DonutPainter(
+              slices.map((s) => s.share).toList(),
+              colors,
+              t,
+              selected,
+              Theme.of(context).colorScheme.surface,
+            ),
+            child: Opacity(opacity: t.clamp(0, 1).toDouble(), child: child),
           ),
-          child: child,
         ),
       ),
       child: Center(child: center),
@@ -143,10 +149,11 @@ class TrendBars extends StatelessWidget {
                     final isSel =
                         m.month.year == selected.year &&
                         m.month.month == selected.month;
-                    Widget bar(int v, Color color) =>
+                    Widget bar(String id, int v, Color color) =>
                         TweenAnimationBuilder<double>(
-                          tween: Tween(end: v / maxV * barMax),
-                          duration: const Duration(milliseconds: 700),
+                          key: ValueKey('$id${TabVisit.of(context)}'),
+                          tween: Tween(begin: 0, end: v / maxV * barMax),
+                          duration: const Duration(milliseconds: 900),
                           curve: Curves.easeOutCubic,
                           builder: (_, h, _) => Container(
                             width: 10,
@@ -178,6 +185,7 @@ class TrendBars extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             bar(
+                              'in',
                               m.income,
                               scheme.primary.withValues(
                                 alpha: isSel ? 0.35 : 0.18,
@@ -185,6 +193,7 @@ class TrendBars extends StatelessWidget {
                             ),
                             const SizedBox(width: 3),
                             bar(
+                              'out',
                               m.expense,
                               scheme.primary.withValues(
                                 alpha: isSel ? 1 : 0.45,

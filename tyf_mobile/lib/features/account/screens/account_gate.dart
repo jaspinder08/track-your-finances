@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../sync/sync_controller.dart';
+
 import '../../../app/shell/app_shell.dart';
 import '../data/account.dart';
 import 'sign_in_screen.dart';
@@ -22,9 +24,7 @@ class _AccountGateState extends ConsumerState<AccountGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => ref.read(accountProvider.notifier).syncWithServer(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
   }
 
   @override
@@ -37,12 +37,19 @@ class _AccountGateState extends ConsumerState<AccountGate>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       setState(() {});
-      ref.read(accountProvider.notifier).syncWithServer();
+      _refresh();
     }
+  }
+
+  Future<void> _refresh() async {
+    await ref.read(accountProvider.notifier).syncWithServer();
+    if (mounted) await ref.read(syncProvider.notifier).syncNow();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Keeps sync alive (it listens for local changes) without rebuilding.
+    ref.listen(syncProvider, (_, _) {});
     final gate = ref.watch(accountProvider).gate(DateTime.now());
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),

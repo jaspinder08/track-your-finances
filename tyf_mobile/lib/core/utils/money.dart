@@ -19,8 +19,15 @@ class Money {
   /// 520000 paise -> "₹5,200". Uses Indian grouping (₹1,00,000).
   static String format(int paise) => _full.format(paise / 100);
 
-  /// 580000 paise -> "₹5.8K". For tight spaces like calendar cells.
-  static String compact(int paise) => _compact.format(paise / 100);
+  /// 580000 paise -> "₹5.8K", 7500 -> "₹75", 200000 -> "₹2K".
+  /// For tight spaces like calendar cells.
+  static String compact(int paise) {
+    if (paise.abs() < 100000) return format(paise); // under ₹1,000
+    // "₹2.0K" -> "₹2K"
+    return _compact
+        .format(paise / 100)
+        .replaceFirst(RegExp(r'\.0(?=[^\d]*$)'), '');
+  }
 }
 
 /// Parses user input like "1,250.5" into paise (125050).

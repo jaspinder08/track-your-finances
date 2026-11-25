@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/theme_controller.dart';
+import '../../../core/design/design.dart';
 
-/// Settings: appearance (theme mode, accent colour) and general options.
+/// Settings: appearance (accent colour; TYF is always dark) and general
+/// options.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -24,39 +26,63 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
 
-    Widget modeTile(ThemeMode mode, IconData icon, String label) => ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: theme.textTheme.titleMedium),
-      trailing: settings.mode == mode
-          ? Icon(Icons.check_rounded, color: theme.colorScheme.primary)
-          : null,
-      onTap: () => controller.setMode(mode),
-    );
-
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text('Appearance', style: theme.textTheme.headlineSmall),
-          sectionLabel('Theme'),
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
+          const SizedBox(height: AppSpace.lg),
+          // Live preview: recolours as soon as a colour is tapped.
+          HeroCard(
+            child: Row(
               children: [
-                modeTile(
-                  ThemeMode.system,
-                  Icons.brightness_auto_outlined,
-                  'Match phone',
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Preview',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: HeroCard.foreground.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpace.xs),
+                      Text(
+                        '₹24,500',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: HeroCard.foreground,
+                        ),
+                      ),
+                      Text(
+                        'saved this month',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: HeroCard.foreground.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(indent: 16, endIndent: 16),
-                modeTile(ThemeMode.light, Icons.light_mode_outlined, 'Light'),
-                const Divider(indent: 16, endIndent: 16),
-                modeTile(ThemeMode.dark, Icons.dark_mode_outlined, 'Dark'),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.md,
+                    vertical: AppSpace.xs + 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: HeroCard.foreground.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    settings.accent.label,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: HeroCard.foreground,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          sectionLabel('Accent colour'),
+          sectionLabel('Accent colour · changes the whole app'),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),

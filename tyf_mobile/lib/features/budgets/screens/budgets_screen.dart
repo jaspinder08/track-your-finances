@@ -40,14 +40,17 @@ class BudgetsView extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
       children: [
-        _Overview(progress: progress),
+        FadeSlideIn(child: _Overview(progress: progress)),
         const SizedBox(height: 24),
         SectionHeader(
           'Category budgets',
           trailing: AddButton(onPressed: () => showBudgetSheet(context)),
         ),
-        for (final p in progress) ...[
-          _BudgetCard(p: p),
+        for (final (i, p) in progress.indexed) ...[
+          FadeSlideIn(
+            index: i + 1,
+            child: _BudgetCard(p: p),
+          ),
           const SizedBox(height: 10),
         ],
         if (unbudgeted.isNotEmpty) ...[
@@ -101,8 +104,8 @@ class _Overview extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        Money.format(left.abs()),
+                      child: AnimatedMoney(
+                        left.abs(),
                         style: theme.textTheme.headlineMedium?.copyWith(
                           color: on,
                           fontWeight: FontWeight.w800,
@@ -205,7 +208,8 @@ class _Ring extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(end: ratio),
+      key: ValueKey(TabVisit.of(context)),
+      tween: Tween(begin: 0, end: ratio),
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOutCubic,
       builder: (context, v, _) => SizedBox(

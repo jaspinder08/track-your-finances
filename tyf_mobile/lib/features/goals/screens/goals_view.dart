@@ -29,8 +29,11 @@ class GoalsView extends ConsumerWidget {
         const SizedBox(height: 24),
         if (active.isNotEmpty) ...[
           const SectionHeader('In progress'),
-          for (final g in active) ...[
-            _GoalCard(goal: g),
+          for (final (i, g) in active.indexed) ...[
+            FadeSlideIn(
+              index: i + 1,
+              child: _GoalCard(goal: g),
+            ),
             const SizedBox(height: 10),
           ],
         ],
@@ -77,8 +80,8 @@ class _Overview extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: Text(
-                    Money.format(saved),
+                  child: AnimatedMoney(
+                    saved,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: on,
                       fontWeight: FontWeight.w800,

@@ -212,8 +212,8 @@ class _Summary extends StatelessWidget {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
-              Money.format(saved.abs()),
+            child: AnimatedMoney(
+              saved.abs(),
               style: theme.textTheme.headlineMedium?.copyWith(
                 color: on,
                 fontWeight: FontWeight.w800,
@@ -462,12 +462,15 @@ class _CategoryBreakdown extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         for (var i = 0; i < slices.length; i++)
-          _CategoryRow(
-            slice: slices[i],
-            color: colors[i],
-            selected: i == selected,
-            month: report.month,
-            onTap: () => onSelect(i),
+          FadeSlideIn(
+            index: i,
+            child: _CategoryRow(
+              slice: slices[i],
+              color: colors[i],
+              selected: i == selected,
+              month: report.month,
+              onTap: () => onSelect(i),
+            ),
           ),
       ],
     );

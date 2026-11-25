@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/design/motion.dart';
+
 /// Animated circular progress with content in the middle.
 class GoalRing extends StatelessWidget {
   const GoalRing({
@@ -22,7 +24,8 @@ class GoalRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
-    tween: Tween(end: ratio.clamp(0, 1).toDouble()),
+    key: ValueKey(TabVisit.of(context)),
+    tween: Tween(begin: 0, end: ratio.clamp(0, 1).toDouble()),
     duration: const Duration(milliseconds: 800),
     curve: Curves.easeOutCubic,
     builder: (context, v, child) => SizedBox.square(

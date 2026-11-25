@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../sync/sync_controller.dart';
+
 import '../../../app/theme/theme_controller.dart';
 
 /// Length of the guest trial. See docs/auth-and-onboarding.md.
@@ -33,6 +35,9 @@ class AccountState {
   final bool gateEnabled;
 
   bool get isGuest => email == null;
+
+  /// Just finished onboarding and hasn't chosen guest or account yet.
+  bool get isFirstRun => onboarded && lastPromptDate == null;
 
   int daysUsed(DateTime now) {
     final start = trialStartedAt ?? now;
@@ -99,7 +104,8 @@ class AccountNotifier extends Notifier<AccountState> {
   }
 
   /// Finishes onboarding: saves the name and starts the trial today.
-  /// Marks today as prompted so a new user isn't asked to sign in at once.
+  /// The sign-in screen follows straight away (first-run wording), where
+  /// the user picks an account or "Continue as guest".
   Future<void> completeOnboarding(String name, {DateTime? now}) async {
     final t = now ?? DateTime.now();
     final p = _prefs;
@@ -108,7 +114,6 @@ class AccountNotifier extends Notifier<AccountState> {
     if (p?.getString(_kTrial) == null) {
       await p?.setString(_kTrial, t.toIso8601String());
     }
-    await p?.setString(_kPrompt, AccountState.dayKey(t));
     ref.invalidateSelf();
     await syncWithServer();
   }
@@ -137,8 +142,14 @@ class AccountNotifier extends Notifier<AccountState> {
           (st.trialStartedAt == null || server.isBefore(st.trialStartedAt!))) {
         await p?.setString(_kTrial, server.toIso8601String());
       }
-      if (r.email != null && st.email != r.email) {
-        await p?.setString(_kEmail, r.email!);
+      // Firebase decides who is signed in: this keeps the app from
+      // showing "Signed in" (with no backup) for a guest, or vice versa.
+      if (r.email != st.email) {
+        if (r.email == null) {
+          await p?.remove(_kEmail);
+        } else {
+          await p?.setString(_kEmail, r.email!);
+        }
       }
       ref.invalidateSelf();
     } catch (_) {
@@ -151,10 +162,17 @@ class AccountNotifier extends Notifier<AccountState> {
     ref.invalidateSelf();
   }
 
-  Future<void> signOut() async {
+  /// Backs up, then signs out and removes this account's data from the
+  /// phone, so it never mixes with the next person's. Returns false
+  /// (and does nothing) if the backup didn't finish, unless [force].
+  Future<bool> signOut({bool force = false}) async {
+    final sync = ref.read(syncProvider.notifier);
+    if (!force && !await sync.backUpForSignOut()) return false;
     await ref.read(authRepositoryProvider).signOut();
+    await sync.clearLocal();
     await _prefs?.remove(_kEmail);
     ref.invalidateSelf();
+    return true;
   }
 }
 

@@ -22,18 +22,21 @@ class HeroCard extends StatelessWidget {
   static (Color, Color) colors(Color accent) {
     final hsl = HSLColor.fromColor(accent);
     final sat = hsl.saturation.clamp(0.55, 0.85).toDouble();
-    final start = hsl.withSaturation(sat).withLightness(0.50).toColor();
+    // Deep, accent-tinted glass: rich enough to stand out, dark enough
+    // to sit inside the glowing dark background instead of on top of it.
+    final start = hsl.withSaturation(sat).withLightness(0.30).toColor();
     final end = hsl
-        .withHue((hsl.hue + 22) % 360)
-        .withSaturation(sat)
-        .withLightness(0.34)
+        .withHue((hsl.hue + 35) % 360)
+        .withSaturation(sat * 0.8)
+        .withLightness(0.13)
         .toColor();
     return (start, end);
   }
 
   @override
   Widget build(BuildContext context) {
-    final (start, end) = colors(Theme.of(context).colorScheme.primary);
+    final accent = Theme.of(context).colorScheme.primary;
+    final (start, end) = colors(accent);
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -43,11 +46,14 @@ class HeroCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [start, end],
         ),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
+        // A soft, centred accent glow; no offset shadow (that reads as a
+        // dark strip under the card).
         boxShadow: [
           BoxShadow(
-            color: end.withValues(alpha: 0.35),
-            blurRadius: 28,
-            offset: const Offset(0, 12),
+            color: accent.withValues(alpha: 0.18),
+            blurRadius: 32,
+            spreadRadius: -6,
           ),
         ],
       ),
@@ -57,12 +63,12 @@ class HeroCard extends StatelessWidget {
           Positioned(
             right: -60,
             top: -70,
-            child: _Glow(size: 200, alpha: 0.12),
+            child: _Glow(size: 220, color: accent, alpha: 0.35),
           ),
           Positioned(
             left: -40,
             bottom: -90,
-            child: _Glow(size: 180, alpha: 0.07),
+            child: _Glow(size: 180, color: Colors.white, alpha: 0.05),
           ),
           Padding(padding: padding, child: child),
         ],
@@ -72,8 +78,9 @@ class HeroCard extends StatelessWidget {
 }
 
 class _Glow extends StatelessWidget {
-  const _Glow({required this.size, required this.alpha});
+  const _Glow({required this.size, required this.color, required this.alpha});
   final double size;
+  final Color color;
   final double alpha;
 
   @override
@@ -83,7 +90,12 @@ class _Glow extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: alpha),
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: alpha),
+            color.withValues(alpha: 0),
+          ],
+        ),
       ),
     ),
   );

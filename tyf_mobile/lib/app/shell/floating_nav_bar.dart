@@ -27,7 +27,6 @@ class FloatingNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget tab(int i) {
       final selected = i == currentIndex;
@@ -45,7 +44,7 @@ class FloatingNavBar extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: selected
-                    ? scheme.primary.withValues(alpha: 0.12)
+                    ? scheme.primary.withValues(alpha: 0.18)
                     : Colors.transparent,
               ),
               child: Icon(
@@ -67,13 +66,23 @@ class FloatingNavBar extends StatelessWidget {
           height: 72,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF26262E) : Colors.white,
+            // Accent-tinted glass with a soft accent glow, matching the
+            // background, instead of a grey slab with a black shadow.
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.lerp(scheme.surfaceContainerHigh, scheme.primary, 0.10)!,
+                Color.lerp(scheme.surfaceContainer, scheme.primary, 0.04)!,
+              ],
+            ),
             borderRadius: BorderRadius.circular(36),
+            border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: scheme.primary.withValues(alpha: 0.16),
+                blurRadius: 28,
+                spreadRadius: -4,
               ),
             ],
           ),

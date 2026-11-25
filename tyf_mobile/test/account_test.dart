@@ -71,8 +71,9 @@ void main() {
           .completeOnboarding(' Jassi ', now: start);
       final s = c.read(accountProvider);
       expect(s.name, 'Jassi');
-      expect(s.gate(start), Gate.app);
-      expect(s.gate(start.add(const Duration(days: 1))), Gate.dailyPrompt);
+      // Straight to the "sign in or guest" choice.
+      expect(s.isFirstRun, isTrue);
+      expect(s.gate(start), Gate.dailyPrompt);
 
       await c
           .read(accountProvider.notifier)
@@ -106,7 +107,9 @@ void main() {
     expect(csv[2], contains('"Tea, ""special"""'));
   });
 
-  testWidgets('first open: welcome → name → app', (tester) async {
+  testWidgets('first open: welcome → name → guest choice → setup sheet', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.6;
     addTearDown(tester.view.reset);
@@ -137,7 +140,16 @@ void main() {
     await tester.enterText(find.byType(TextFormField), 'Jassi');
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
+
+    // Sign in, or continue as a guest.
+    expect(find.text('Welcome, Jassi!'), findsOneWidget);
+    expect(find.text('Continue with Google'), findsOneWidget);
+    await tester.tap(find.text('Continue as guest · 14-day free trial'));
+    await tester.pumpAndSettle();
+
+    // The app, with the setup sheet for a new (empty) account.
     expect(find.text('Mon'), findsOneWidget); // calendar
+    expect(find.text('Let\'s set things up'), findsOneWidget);
     expect(prefs.getString('user_name'), 'Jassi');
   });
 

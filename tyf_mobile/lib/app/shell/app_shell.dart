@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design/motion.dart';
+
 import '../../features/budgets/screens/budgets_screen.dart';
 import '../../features/budgets/widgets/budget_sheet.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/categories/widgets/category_editor_sheet.dart';
+import '../../features/budgets/data/budget_repository.dart';
 import '../../features/onboarding/setup_sheet.dart';
+import '../../features/sync/sync_controller.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../../features/transactions/data/entry_repository.dart';
 import '../../features/transactions/screens/add_transaction_sheet.dart';
@@ -23,9 +27,33 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with SingleTickerProviderStateMixin {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _index = 0;
+  final _visits = [1, 0, 0, 0];
+
+  /// Fades and lifts the tab in when you switch to it.
+  late final _switch = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+    value: 1,
+  );
+
+  void _go(int i) {
+    if (i == _index) return;
+    setState(() {
+      _index = i;
+      _visits[i]++;
+    });
+    _switch.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _switch.dispose();
+    super.dispose();
+  }
 
   static const _items = [
     NavItem(Icons.calendar_month_outlined, Icons.calendar_month, 'Calendar'),
@@ -53,9 +81,16 @@ class _AppShellState extends ConsumerState<AppShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowSetup());
   }
 
-  void _maybeShowSetup() {
+  /// Shows the setup sheet only for an account with nothing in it yet:
+  /// first bring down what the account already has (e.g. a new phone).
+  Future<void> _maybeShowSetup() async {
     if (!mounted || !ref.read(setupPromptProvider)) return;
     ref.read(setupPromptProvider.notifier).consume();
+    await ref.read(syncProvider.notifier).syncNow();
+    if (!mounted) return;
+    final entries = await ref.read(entriesProvider.future);
+    final budgets = await ref.read(budgetsProvider.future);
+    if (!mounted || entries.isNotEmpty || budgets.isNotEmpty) return;
     showSetupSheet(context);
   }
 
@@ -78,10 +113,34 @@ class _AppShellState extends ConsumerState<AppShell> {
             TopBar(
               balancePaise: ref.watch(balanceProvider),
               onMenu: () => _scaffoldKey.currentState?.openDrawer(),
-              onReports: () => setState(() => _index = 3),
+              onReports: () => _go(3),
             ),
             Expanded(
-              child: IndexedStack(index: _index, children: _pages),
+              child: FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: _switch,
+                  curve: Curves.easeOut,
+                ),
+                child: SlideTransition(
+                  position:
+                      Tween(
+                        begin: const Offset(0, 0.03),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: _switch,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      ),
+                  child: IndexedStack(
+                    index: _index,
+                    children: [
+                      for (var i = 0; i < _pages.length; i++)
+                        TabVisit(visits: _visits[i], child: _pages[i]),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -89,7 +148,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       bottomNavigationBar: FloatingNavBar(
         items: _items,
         currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
+        onTap: _go,
         // + matches the tab: Budgets sets a budget, others add an entry.
         onAdd: () {
           if (_index == 1) {

@@ -33,11 +33,13 @@ Future<EntryDraft?> showAddTransactionSheet(
       opaque: false,
       transitionDuration: const Duration(milliseconds: 320),
       reverseTransitionDuration: const Duration(milliseconds: 240),
-      pageBuilder: (_, _, _) => AddTransactionSheet(
-        initialType: initialType,
-        initialDate: initialDate,
-        editing: editing,
-        initialCategory: initialCategory,
+      pageBuilder: (_, _, _) => AppBackground(
+        child: AddTransactionSheet(
+          initialType: initialType,
+          initialDate: initialDate,
+          editing: editing,
+          initialCategory: initialCategory,
+        ),
       ),
       transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(

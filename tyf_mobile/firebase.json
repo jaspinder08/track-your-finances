@@ -1,1 +1,24 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"tyf---track-your-finances","appId":"1:276498180118:android:56c9e34398df1d527dad37","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"tyf---track-your-finances","configurations":{"android":"1:276498180118:android:56c9e34398df1d527dad37"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tyf---track-your-finances",
+          "appId": "1:276498180118:android:56c9e34398df1d527dad37",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tyf---track-your-finances",
+          "configurations": {
+            "android": "1:276498180118:android:56c9e34398df1d527dad37"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

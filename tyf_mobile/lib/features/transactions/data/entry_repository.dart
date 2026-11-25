@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../database/database_helper.dart';
@@ -14,7 +15,10 @@ abstract class EntryRepository {
 
   /// Every row, including soft-deleted ones (used for recurrence).
   Future<List<Entry>> allRows();
-  Future<Entry> add(EntryDraft draft, {String? seriesId});
+
+  /// [id]: a fixed ID (recurring copies use one, so two phones creating
+  /// the same copy make one row). Adding an ID that exists does nothing.
+  Future<Entry> add(EntryDraft draft, {String? seriesId, String? id});
   Future<Entry> update(Entry entry, EntryDraft draft);
   Future<void> delete(String id);
 
@@ -48,17 +52,21 @@ class SqliteEntryRepository implements EntryRepository {
   }
 
   @override
-  Future<Entry> add(EntryDraft draft, {String? seriesId}) async {
+  Future<Entry> add(EntryDraft draft, {String? seriesId, String? id}) async {
     final now = DateTime.now().toUtc();
     final entry = Entry(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       data: draft,
       createdAt: now,
       updatedAt: now,
       seriesId: seriesId,
     );
     final db = await _helper.database;
-    await db.insert(EntryTable.tableName, toRow(entry));
+    await db.insert(
+      EntryTable.tableName,
+      toRow(entry),
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
     return entry;
   }
 
@@ -178,13 +186,16 @@ class InMemoryEntryRepository implements EntryRepository {
   Future<List<Entry>> all() async => List.of(_items);
 
   @override
-  Future<List<Entry>> allRows() async => [..._items, ..._deleted];
+  Future<List<Entry>> allRows() async => allRowsSync();
+  List<Entry> allRowsSync() => [..._items, ..._deleted];
 
   @override
-  Future<Entry> add(EntryDraft draft, {String? seriesId}) async {
+  Future<Entry> add(EntryDraft draft, {String? seriesId, String? id}) async {
+    final existing = allRowsSync().where((e) => e.id == id).firstOrNull;
+    if (existing != null) return existing;
     final now = DateTime.now().toUtc();
     final e = Entry(
-      id: '${_next++}',
+      id: id ?? '${_next++}',
       data: draft,
       createdAt: now,
       updatedAt: now,
@@ -347,6 +358,7 @@ Future<int> createDueRecurring(EntryRepository repo, DateTime now) async {
           paymentMethod: d.paymentMethod,
         ),
         seriesId: root.id,
+        id: '${root.id}-${SqliteEntryRepository._day.format(date)}',
       );
       created++;
     }

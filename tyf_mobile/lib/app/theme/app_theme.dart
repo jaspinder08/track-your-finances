@@ -23,18 +23,17 @@ class FinanceColors {
   static const expense = Color(0xFFE5484D);
 }
 
-/// Builds the light and dark themes from one accent colour.
+/// TYF is always dark; the accent colours the whole app, including the
+/// background (see AppBackground).
 class AppTheme {
   AppTheme._();
 
   static const radius = 20.0;
 
-  static ThemeData light(AccentColor accent) =>
-      _build(accent, Brightness.light);
-  static ThemeData dark(AccentColor accent) => _build(accent, Brightness.dark);
-
-  static ThemeData _build(AccentColor accent, Brightness brightness) {
-    final isDark = brightness == Brightness.dark;
+  static ThemeData dark(AccentColor accent) {
+    const brightness = Brightness.dark;
+    Color tint(int base, double amount) =>
+        Color.lerp(Color(base), accent.color, amount)!;
     final scheme = ColorScheme.fromSeed(
       seedColor: accent.color,
       brightness: brightness,
@@ -44,20 +43,43 @@ class AppTheme {
       onPrimary: accent.color.computeLuminance() > 0.45
           ? const Color(0xFF1B1B1F)
           : Colors.white,
-      surface: isDark ? const Color(0xFF17171C) : const Color(0xFFFCFCFD),
+      // Sheets, dialogs and the sidebar: dark, with a hint of the accent.
+      surface: tint(0xFF141419, 0.05),
+      surfaceContainerLow: tint(0xFF18181E, 0.06),
+      surfaceContainer: tint(0xFF1C1C23, 0.07),
+      surfaceContainerHigh: tint(0xFF22222A, 0.08),
+      surfaceContainerHighest: tint(0xFF2A2A33, 0.09),
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: scheme.surface,
+      // Transparent so AppBackground shows through every page.
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surfaceContainerHigh,
+        surfaceTintColor: Colors.transparent,
+      ),
+      drawerTheme: DrawerThemeData(
+        backgroundColor: scheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+      ),
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant.withValues(alpha: 0.5),
         space: 1,
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: isDark ? const Color(0xFF222229) : Colors.white,
+        color: scheme.surfaceContainer,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius),
         ),
@@ -143,9 +165,20 @@ class AppTheme {
           (s) => s.contains(WidgetState.selected) ? scheme.primary : null,
         ),
       ),
+      // Flat pill: Material's black elevation shadow looks like a dark box
+      // around the button on this background.
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        shape: const StadiumBorder(),
+        extendedTextStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       textTheme: const TextTheme(
         headlineMedium: TextStyle(fontWeight: FontWeight.w700),

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../design/app_background.dart';
+
 /// Full-screen page route used across the app: slides in from the right.
 ///
 /// Non-opaque on purpose: Riverpod pauses listeners on routes hidden
 /// behind an opaque page and resuming them mid-build on close throws when
 /// data changed meanwhile (e.g. a goal was edited). Pages using this route
-/// paint their own Scaffold background, so it looks the same.
+/// paint the app background themselves, so it looks the same.
 Route<T> appPageRoute<T>(Widget page) => PageRouteBuilder<T>(
   opaque: false,
   transitionDuration: const Duration(milliseconds: 300),
   reverseTransitionDuration: const Duration(milliseconds: 240),
-  pageBuilder: (_, _, _) => page,
+  pageBuilder: (_, _, _) => AppBackground(child: page),
   transitionsBuilder: (_, animation, _, child) {
     final curved = CurvedAnimation(
       parent: animation,

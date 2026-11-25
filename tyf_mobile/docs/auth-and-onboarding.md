@@ -22,7 +22,8 @@ it when a decision changes.
 ## Flow
 
 ```
-First open → Welcome → Name → (anonymous Firebase account created) → App
+First open → Welcome → Name → Sign in or guest → Setup sheet → App
+                 (anonymous Firebase account created)
                                                                 │
    Days 1–14: first open each day → Sign-in screen
               [Sign in / Create account]   [Continue as guest · N days left]
@@ -40,6 +41,12 @@ First open → Welcome → Name → (anonymous Firebase account created) → App
 - **Name:** "What should we call you?"
 - **Anonymous account:** the app creates a Firebase anonymous account in the
   background (see "How a guest is tracked").
+- **Sign in or guest:** "Welcome, {name}!" with Continue with Google, email,
+  and **Continue as guest · 14-day free trial**. This uses the sign-in
+  screen (`isFirstRun`), so it counts as day 1's daily prompt.
+- **Setup sheet** (category → budget → first entry), for guests and
+  signed-in users alike, when there's no data yet. A returning user whose
+  account already has data skips it.
 - **Then the calendar.**
 
 ### 2. During the trial (days 1–14)
@@ -93,7 +100,9 @@ between "log in" and "sign up":
 - **Guest signs in to an existing account** (e.g. a new phone): local guest
   data is merged into that account. UUIDs prevent duplicates, and conflicts
   follow last-write-wins on `updated_at`.
-- **Sign out:** asks whether to keep this phone's data or remove it.
+- **Sign out** (sidebar): backs up, then removes the account's data from
+  this phone, so it never mixes with the next person's account. If the
+  backup can't finish (offline), it warns first. See `docs/sync.md`.
 - **Setup sheet:** right after every sign-in (Google or email), a bottom
   sheet walks through 3 optional steps: choose or create a category → set
   its monthly budget → add a first expense, income or transfer with that
@@ -202,7 +211,7 @@ between "log in" and "sign up":
 | Firebase Auth (anonymous guest, link to email, reset) | Done. Guest accounts verified on a device (25 Nov). Email sign-up, sign-in and reset are still to be tested on a device. | `lib/features/account/data/firebase_auth_repository.dart` |
 | Server trial start (`users/{uid}.trialStartedAt`) | Done, verified in Firestore | `FirebaseAuthRepository.ensureGuest` |
 | Google sign-in (link guest, or sign in to existing) | Done, verified on a device (25 Nov) | `FirebaseAuthRepository.signInWithGoogle` |
-| Data sync (entries, budgets, categories) | Not started | — |
+| Data sync (entries, budgets, categories) | Done; see `docs/sync.md` | `lib/features/sync/` |
 
 **Firebase project:** `tyf---track-your-finances`. It's connected for
 Android only (`com.jassi.tyf_mobile`). iOS still uses the placeholder bundle

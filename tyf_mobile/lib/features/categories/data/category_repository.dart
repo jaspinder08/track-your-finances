@@ -62,8 +62,8 @@ class SqliteCategoryRepository implements CategoryRepository {
     final count =
         (await db.rawQuery('SELECT COUNT(*) AS n FROM $_t')).first['n'] as int;
     if (count == 0) {
-      await saveAll(CategoryKind.expense, expenseCategories);
-      await saveAll(CategoryKind.income, incomeCategories);
+      await _saveAll(CategoryKind.expense, expenseCategories, seed: true);
+      await _saveAll(CategoryKind.income, incomeCategories, seed: true);
     }
     Future<List<CategoryOption>> read(CategoryKind k) async {
       final rows = await db.query(
@@ -93,9 +93,21 @@ class SqliteCategoryRepository implements CategoryRepository {
 
   /// Upserts by (kind, name) and soft-deletes names no longer present.
   @override
-  Future<void> saveAll(CategoryKind kind, List<CategoryOption> list) async {
+  Future<void> saveAll(CategoryKind kind, List<CategoryOption> list) =>
+      _saveAll(kind, list);
+
+  /// [seed]: the first-launch defaults. They get fixed IDs and the oldest
+  /// possible time, so on a new phone the account's own (edited) copies
+  /// win when synced, and two phones' defaults are the same rows.
+  Future<void> _saveAll(
+    CategoryKind kind,
+    List<CategoryOption> list, {
+    bool seed = false,
+  }) async {
     final db = await _helper.database;
-    final now = DateTime.now().toUtc().toIso8601String();
+    final now = seed
+        ? DateTime.utc(1970).toIso8601String()
+        : DateTime.now().toUtc().toIso8601String();
     await db.transaction((txn) async {
       final existing = {
         for (final r in await txn.query(
@@ -118,7 +130,9 @@ class SqliteCategoryRepository implements CategoryRepository {
         if (row == null) {
           await txn.insert(_t, {
             ...values,
-            UserCategoryTable.colId: _uuid.v4(),
+            UserCategoryTable.colId: seed
+                ? 'default-${kind.name}-${c.name}'
+                : _uuid.v4(),
             UserCategoryTable.colKind: kind.name,
             UserCategoryTable.colName: c.name,
             UserCategoryTable.colCreatedAt: now,
