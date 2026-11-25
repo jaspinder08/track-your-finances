@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../../transactions/data/entry_repository.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import 'goal_ring.dart';
 
@@ -17,7 +17,7 @@ Future<void> showGoalSheet(BuildContext context, String goalId) =>
       showDragHandle: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (_) => GoalSheet(goalId: goalId),
     );
@@ -58,7 +58,7 @@ class GoalSheet extends ConsumerWidget {
                   tooltip: 'Edit goal',
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () =>
-                      showAddTransactionSheet(context, editing: goal.entry),
+                      showAddTransactionScreen(context, editing: goal.entry),
                 ),
                 IconButton(
                   tooltip: 'Delete goal',
@@ -110,7 +110,7 @@ class GoalSheet extends ConsumerWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: scheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [

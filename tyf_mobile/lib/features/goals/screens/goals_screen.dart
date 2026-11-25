@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import 'goals_view.dart';
 
@@ -40,8 +40,10 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
           ? FloatingActionButton.extended(
               tooltip: 'New goal',
               isExtended: _extended,
-              onPressed: () =>
-                  showAddTransactionSheet(context, initialType: EntryType.goal),
+              onPressed: () => showAddTransactionScreen(
+                context,
+                initialType: EntryType.goal,
+              ),
               icon: const Icon(Icons.add_rounded),
               label: const Text('New goal'),
             )

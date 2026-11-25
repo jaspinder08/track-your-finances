@@ -5,7 +5,7 @@ import 'package:tyf_mobile/features/budgets/data/budget_repository.dart';
 import 'package:tyf_mobile/features/categories/data/category_repository.dart';
 import 'package:tyf_mobile/features/onboarding/setup_sheet.dart';
 import 'package:tyf_mobile/features/transactions/data/entry_repository.dart';
-import 'package:tyf_mobile/features/transactions/screens/add_transaction_sheet.dart';
+import 'package:tyf_mobile/features/transactions/screens/add_transaction_screen.dart';
 
 void main() {
   testWidgets('setup: pick category, then expense opens with it selected', (
@@ -50,7 +50,7 @@ void main() {
     await tester.tap(find.text('Expense'));
     await tester.pumpAndSettle();
     // The add form opens with Food already chosen.
-    final form = find.byType(AddTransactionSheet);
+    final form = find.byType(AddTransactionScreen);
     expect(form, findsOneWidget);
     expect(
       find.descendant(of: form, matching: find.textContaining('Food')),

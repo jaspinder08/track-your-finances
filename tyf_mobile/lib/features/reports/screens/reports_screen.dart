@@ -8,7 +8,7 @@ import '../../calendar/widgets/day_entries_sheet.dart';
 import '../../categories/data/category_repository.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/month_report.dart';
 import '../widgets/charts.dart';
 
@@ -65,7 +65,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               message:
                   'Add income and expenses and you\'ll see where your money goes.',
               actionLabel: 'Add a transaction',
-              onAction: () => showAddTransactionSheet(context),
+              onAction: () => showAddTransactionScreen(context),
             ),
           ),
         ],
@@ -282,7 +282,7 @@ class _Badge extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.16),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(10),
     ),
     child: Text(
       text,
@@ -496,14 +496,14 @@ class _CategoryRow extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
         decoration: BoxDecoration(
           color: selected ? color.withValues(alpha: 0.10) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
@@ -513,7 +513,7 @@ class _CategoryRow extends ConsumerWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 slice.emoji ?? '💸',
@@ -548,7 +548,7 @@ class _CategoryRow extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: slice.share,
                             minHeight: 6,
@@ -677,7 +677,7 @@ class _MethodRow extends StatelessWidget {
           ),
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: slice.share,
                 minHeight: 8,

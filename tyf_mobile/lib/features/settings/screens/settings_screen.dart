@@ -70,7 +70,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   decoration: BoxDecoration(
                     color: HeroCard.foreground.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     settings.accent.label,

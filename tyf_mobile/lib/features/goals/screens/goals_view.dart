@@ -6,7 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/design/design.dart';
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import '../widgets/goal_ring.dart';
 import '../widgets/goal_sheet.dart';
@@ -232,6 +232,6 @@ class _Empty extends StatelessWidget {
     // A full page (no nav bar), so centre in the whole space.
     bottomInset: AppSpace.xxxl,
     onAction: () =>
-        showAddTransactionSheet(context, initialType: EntryType.goal),
+        showAddTransactionScreen(context, initialType: EntryType.goal),
   );
 }

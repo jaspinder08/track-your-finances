@@ -24,7 +24,7 @@ class AppDrawer extends ConsumerWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(label, style: theme.textTheme.titleMedium),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         tileColor: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.4,
         ),

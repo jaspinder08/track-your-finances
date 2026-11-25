@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/design/design.dart';
+import '../../../core/navigation/page_route.dart';
 import '../../../core/utils/money.dart';
 import '../../categories/data/category_repository.dart';
 import '../data/entry.dart';
@@ -15,10 +18,10 @@ export '../data/entry.dart';
 /// [initialDate] to pre-fill (e.g. tapping a calendar day opens it on that
 /// date). Pass [editing] to change an existing entry instead.
 ///
-/// It's a page that slides up rather than a bottom sheet: the page settles
+/// A full screen that slides in like the app's other pages; it settles
 /// first and the keyboard opens after, so nothing jumps or resizes.
 /// Returns the last draft saved, or null if closed without saving.
-Future<EntryDraft?> showAddTransactionSheet(
+Future<EntryDraft?> showAddTransactionScreen(
   BuildContext context, {
   EntryType initialType = EntryType.expense,
   DateTime? initialDate,
@@ -26,41 +29,19 @@ Future<EntryDraft?> showAddTransactionSheet(
   String? initialCategory,
 }) {
   return Navigator.of(context).push<EntryDraft>(
-    PageRouteBuilder(
-      // Non-opaque keeps the screens behind "live". Riverpod pauses
-      // listeners on hidden routes and resuming them mid-build on close
-      // throws; the page is full-screen, so it looks the same.
-      opaque: false,
-      transitionDuration: const Duration(milliseconds: 320),
-      reverseTransitionDuration: const Duration(milliseconds: 240),
-      pageBuilder: (_, _, _) => AppBackground(
-        child: AddTransactionSheet(
-          initialType: initialType,
-          initialDate: initialDate,
-          editing: editing,
-          initialCategory: initialCategory,
-        ),
+    appPageRoute(
+      AddTransactionScreen(
+        initialType: initialType,
+        initialDate: initialDate,
+        editing: editing,
+        initialCategory: initialCategory,
       ),
-      transitionsBuilder: (_, animation, _, child) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-        return SlideTransition(
-          position: Tween(
-            begin: const Offset(0, 0.08),
-            end: Offset.zero,
-          ).animate(curved),
-          child: FadeTransition(opacity: curved, child: child),
-        );
-      },
     ),
   );
 }
 
-class AddTransactionSheet extends ConsumerStatefulWidget {
-  const AddTransactionSheet({
+class AddTransactionScreen extends ConsumerStatefulWidget {
+  const AddTransactionScreen({
     super.key,
     this.initialType = EntryType.expense,
     this.initialDate,
@@ -79,11 +60,11 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
   final Entry? editing;
 
   @override
-  ConsumerState<AddTransactionSheet> createState() =>
-      _AddTransactionSheetState();
+  ConsumerState<AddTransactionScreen> createState() =>
+      _AddTransactionScreenState();
 }
 
-class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
+class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amount = TextEditingController();
   final _amountFocus = FocusNode();
@@ -285,12 +266,20 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     EntryType.goal => 'Target amount',
   };
 
+  /// Roughly the Save bar's height, which the keyboard covers.
+  static const _barHeight = 69.0;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
 
     return Scaffold(
+      // The page doesn't shrink for the keyboard: the Save buttons stay at
+      // the bottom of the screen, under the keyboard, and show again when
+      // it closes. The list pads itself so fields still scroll into view.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Form(
@@ -318,17 +307,17 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
-                    IconButton.filledTonal(
-                      tooltip: 'Close',
-                      onPressed: () => Navigator.maybePop(context),
-                      icon: const Icon(Icons.close),
-                    ),
                   ],
                 ),
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    8,
+                    16,
+                    24 + math.max(0, keyboard - _barHeight),
+                  ),
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   children: [
@@ -364,49 +353,61 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   ],
                 ),
               ),
-              // Bottom bar: Save & add another · Save.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerLow,
-                  border: Border(
-                    top: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.5),
+              // Bottom bar: Save & add another · Save. Hidden while the
+              // keyboard is up; fades in once it's gone.
+              AnimatedOpacity(
+                opacity: keyboard > 0 ? 0 : 1,
+                duration: const Duration(milliseconds: 180),
+                child: IgnorePointer(
+                  ignoring: keyboard > 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerLow,
+                      border: Border(
+                        top: BorderSide(
+                          color: scheme.outlineVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (!_isEditing)
-                          Flexible(
-                            child: TextButton(
-                              onPressed: _saving
-                                  ? null
-                                  : () => _save(another: true),
-                              child: const FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  'Save & add another',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (!_isEditing)
+                              Flexible(
+                                child: TextButton(
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _save(another: true),
+                                  child: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Save & add another',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
+                            const SizedBox(width: 8),
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size(0, 48),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                              ),
+                              onPressed: _saving ? null : _save,
+                              icon: const Icon(Icons.check_rounded, size: 20),
+                              label: const Text('Save'),
                             ),
-                          ),
-                        const SizedBox(width: 8),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                          ),
-                          onPressed: _saving ? null : _save,
-                          icon: const Icon(Icons.check_rounded, size: 20),
-                          label: const Text('Save'),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -460,7 +461,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
           Container(
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               children: [
@@ -565,7 +566,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
         decoration: BoxDecoration(
           color: scheme.primary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
@@ -576,7 +577,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                   initialValue: _paymentMethod,
                   onSelected: (m) => setState(() => _paymentMethod = m),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   itemBuilder: (_) => [
                     for (final m in paymentMethods)
@@ -598,7 +599,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: scheme.primary.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           paymentMethodIcons[_paymentMethod],
@@ -835,7 +836,7 @@ class _Row extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(10),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 56),
         child: Padding(
@@ -896,7 +897,7 @@ class _TypeChips extends StatelessWidget {
                     color: t == selected
                         ? scheme.primary
                         : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -1054,7 +1055,7 @@ class _CategoryField extends FormField<CategoryOption> {
                    color: scheme.surfaceContainerHighest.withValues(
                      alpha: 0.35,
                    ),
-                   borderRadius: BorderRadius.circular(24),
+                   borderRadius: BorderRadius.circular(12),
                    border: Border.all(
                      color: field.hasError && selected == null
                          ? scheme.error
@@ -1065,7 +1066,7 @@ class _CategoryField extends FormField<CategoryOption> {
                    crossAxisAlignment: CrossAxisAlignment.stretch,
                    children: [
                      InkWell(
-                       borderRadius: BorderRadius.circular(24),
+                       borderRadius: BorderRadius.circular(12),
                        onTap: onTap,
                        child: Padding(
                          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
@@ -1349,7 +1350,7 @@ class _CategoryTile extends StatelessWidget {
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           width: width,
@@ -1358,7 +1359,7 @@ class _CategoryTile extends StatelessWidget {
             color: selected
                 ? color.withValues(alpha: 0.12)
                 : scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: selected ? color : Colors.transparent,
               width: 1.5,
@@ -1443,7 +1444,9 @@ class _ChipRow extends StatelessWidget {
               color: isSelected ? color : scheme.onSurface,
             ),
             side: BorderSide(color: isSelected ? color : scheme.outlineVariant),
-            shape: const StadiumBorder(),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           );
         },
       ),
@@ -1482,7 +1485,7 @@ class _TransferCard extends FormField<void> {
                    color: scheme.surfaceContainerHighest.withValues(
                      alpha: 0.35,
                    ),
-                   borderRadius: BorderRadius.circular(24),
+                   borderRadius: BorderRadius.circular(12),
                    border: Border.all(
                      color: field.hasError
                          ? scheme.error
@@ -1562,7 +1565,7 @@ class _GoalProgress extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1582,7 +1585,7 @@ class _GoalProgress extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: share,
               minHeight: 10,

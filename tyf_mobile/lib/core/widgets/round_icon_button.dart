@@ -26,6 +26,7 @@ class RoundIconButton extends StatelessWidget {
         onPressed: onPressed,
         tooltip: tooltip,
         iconSize: 24,
+        style: IconButton.styleFrom(shape: const CircleBorder()),
       ),
     );
     if (badge == null || badge == 0) return button;

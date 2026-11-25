@@ -15,13 +15,15 @@ abstract final class AppSpace {
 
 /// Corner radius scale.
 abstract final class AppRadius {
-  static const double sm = 12;
-  static const double md = 16;
-  static const double lg = 20;
+  // Tight corners: slightly softened, never pill-shaped.
+  static const double xs = 4;
+  static const double sm = 6;
+  static const double md = 8;
+  static const double lg = 8;
 
   /// Standard cards and panels.
-  static const double card = 24;
+  static const double card = 10;
 
   /// Hero cards and bottom sheets.
-  static const double hero = 28;
+  static const double hero = 12;
 }

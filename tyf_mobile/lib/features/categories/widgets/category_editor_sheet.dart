@@ -80,7 +80,7 @@ Future<void> showCategoryEditor(
     showDragHandle: true,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
     ),
     builder: (_) => CategoryEditorSheet(kind: kind, existing: existing),
   );
@@ -210,7 +210,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: scheme.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(_emoji, style: const TextStyle(fontSize: 26)),
                     ),
@@ -286,7 +286,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       children: [
                         for (final e in _emojiChoices)
                           InkWell(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(8),
                             onTap: () => setState(() => _emoji = e),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
@@ -299,7 +299,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                                     : scheme.surfaceContainerHighest.withValues(
                                         alpha: 0.45,
                                       ),
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: e == _emoji
                                       ? scheme.primary

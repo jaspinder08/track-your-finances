@@ -8,7 +8,7 @@ import '../budgets/widgets/budget_sheet.dart';
 import '../categories/data/category_repository.dart';
 import '../categories/widgets/category_editor_sheet.dart';
 import '../transactions/data/transaction_options.dart';
-import '../transactions/screens/add_transaction_sheet.dart';
+import '../transactions/screens/add_transaction_screen.dart';
 
 /// Set to true right after a sign-in; the app shell shows [SetupSheet]
 /// once and resets it.
@@ -32,7 +32,7 @@ Future<void> showSetupSheet(BuildContext context) {
     showDragHandle: true,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
     ),
     builder: (_) => const SetupSheet(),
   );
@@ -65,7 +65,7 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
   Future<void> _addEntry(EntryType type) async {
     final messenger = ScaffoldMessenger.of(context);
     final nav = Navigator.of(context);
-    final saved = await showAddTransactionSheet(
+    final saved = await showAddTransactionScreen(
       context,
       initialType: type,
       initialCategory: type == EntryType.transfer ? null : _category,

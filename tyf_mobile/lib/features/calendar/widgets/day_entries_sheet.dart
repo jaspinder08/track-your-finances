@@ -7,7 +7,7 @@ import '../../../core/utils/money.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../categories/data/category_repository.dart';
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 
 /// Lists one day's entries. Tap one to edit it; swipe left to delete it.
 Future<void> showDayEntriesSheet(BuildContext context, DateTime day) async {
@@ -19,7 +19,7 @@ Future<void> showDayEntriesSheet(BuildContext context, DateTime day) async {
     builder: (_) => DayEntriesSheet(day: day),
   );
   if (addMore == true && context.mounted) {
-    await showAddTransactionSheet(context, initialDate: day);
+    await showAddTransactionScreen(context, initialDate: day);
   }
 }
 
@@ -141,7 +141,7 @@ class EntryTile extends ConsumerWidget {
     };
 
     return ListTile(
-      onTap: () => showAddTransactionSheet(context, editing: entry),
+      onTap: () => showAddTransactionScreen(context, editing: entry),
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.14),
         child: emoji != null

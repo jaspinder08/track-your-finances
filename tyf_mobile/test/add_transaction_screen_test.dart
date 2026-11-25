@@ -5,7 +5,7 @@ import 'package:tyf_mobile/core/utils/money.dart';
 import 'package:tyf_mobile/features/categories/data/category_repository.dart';
 import 'package:tyf_mobile/features/transactions/data/entry_repository.dart';
 import 'package:tyf_mobile/features/transactions/data/transaction_options.dart';
-import 'package:tyf_mobile/features/transactions/screens/add_transaction_sheet.dart';
+import 'package:tyf_mobile/features/transactions/screens/add_transaction_screen.dart';
 
 Future<InMemoryEntryRepository> _pump(
   WidgetTester tester, {
@@ -26,7 +26,7 @@ Future<InMemoryEntryRepository> _pump(
       ],
       child: MaterialApp(
         theme: theme,
-        home: AddTransactionSheet(initialType: initialType),
+        home: AddTransactionScreen(initialType: initialType),
       ),
     ),
   );

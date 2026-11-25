@@ -134,6 +134,10 @@ void main() {
     await shot('02_day_sheet');
     await tester.tapAt(const Offset(200, 100));
     await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Insights'));
+    await shot('02b_insights');
+    await tester.tapAt(const Offset(200, 40));
+    await tester.pumpAndSettle();
 
     await tab('Budgets');
     await shot('03_budgets');

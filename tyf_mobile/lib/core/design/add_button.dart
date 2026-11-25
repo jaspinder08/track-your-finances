@@ -24,7 +24,7 @@ class AddButton extends StatelessWidget {
         minimumSize: const Size(0, 36),
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: onPressed,
       icon: const Icon(Icons.add_rounded, size: 18),

@@ -77,9 +77,9 @@ class TopBar extends StatelessWidget {
           ),
           const Spacer(),
           RoundIconButton(
-            icon: Icons.bar_chart_rounded,
+            icon: Icons.auto_awesome_rounded,
             onPressed: onReports,
-            tooltip: 'Reports',
+            tooltip: 'Insights',
           ),
         ],
       ),

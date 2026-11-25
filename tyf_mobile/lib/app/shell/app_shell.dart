@@ -9,11 +9,12 @@ import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/categories/widgets/category_editor_sheet.dart';
 import '../../features/budgets/data/budget_repository.dart';
+import '../../features/insights/insights_sheet.dart';
 import '../../features/onboarding/setup_sheet.dart';
 import '../../features/sync/sync_controller.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../../features/transactions/data/entry_repository.dart';
-import '../../features/transactions/screens/add_transaction_sheet.dart';
+import '../../features/transactions/screens/add_transaction_screen.dart';
 import 'app_drawer.dart';
 import 'floating_nav_bar.dart';
 import 'top_bar.dart';
@@ -113,7 +114,8 @@ class _AppShellState extends ConsumerState<AppShell>
             TopBar(
               balancePaise: ref.watch(balanceProvider),
               onMenu: () => _scaffoldKey.currentState?.openDrawer(),
-              onReports: () => _go(3),
+              onReports: () =>
+                  showInsightsSheet(context, onOpenReports: () => _go(3)),
             ),
             Expanded(
               child: FadeTransition(
@@ -159,7 +161,7 @@ class _AppShellState extends ConsumerState<AppShell>
               kind: ref.read(categoryKindViewProvider),
             );
           } else {
-            showAddTransactionSheet(context);
+            showAddTransactionScreen(context);
           }
         },
       ),

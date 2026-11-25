@@ -35,7 +35,7 @@ class IconBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: c.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(size * 0.32 + 0.0),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: emoji != null
           ? Text(emoji!, style: TextStyle(fontSize: size * 0.5, height: 1))
@@ -55,7 +55,7 @@ class StatusPill extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: 3),
     decoration: BoxDecoration(
       color: color.withValues(alpha: 0.15),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
+      borderRadius: BorderRadius.circular(AppRadius.xs),
     ),
     child: Text(
       text,

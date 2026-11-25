@@ -6,7 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_sheet.dart';
+import '../../transactions/screens/add_transaction_screen.dart';
 import '../widgets/day_entries_sheet.dart';
 
 /// Home tab: a month calendar. Each day shows its income and expense
@@ -165,7 +165,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           e.type == EntryType.goal,
                     ),
                     onTap: () => entries.isEmpty
-                        ? showAddTransactionSheet(context, initialDate: day)
+                        ? showAddTransactionScreen(context, initialDate: day)
                         : showDayEntriesSheet(context, day),
                   );
                 },
@@ -239,7 +239,7 @@ class _MonthStrip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
@@ -303,14 +303,14 @@ class _DayCell extends StatelessWidget {
 
     return Material(
       color: bg,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         onTap: onTap,
         child: Container(
           decoration: isToday
               ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: scheme.primary.withValues(alpha: 0.6),
                     width: 1.5,

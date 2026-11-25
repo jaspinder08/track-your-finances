@@ -17,7 +17,7 @@ Future<void> showBudgetSheet(BuildContext context, {String? category}) async {
     showDragHandle: true,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
     ),
     builder: (_) => BudgetSheet(initialCategory: category),
   );
@@ -423,7 +423,7 @@ class _CategoryGrid extends StatelessWidget {
                     excludeSemantics: true,
                     child: InkWell(
                       onTap: () => onPick(c),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(10),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         width: w,
@@ -437,7 +437,7 @@ class _CategoryGrid extends StatelessWidget {
                               : scheme.surfaceContainerHighest.withValues(
                                   alpha: 0.45,
                                 ),
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSel ? scheme.primary : Colors.transparent,
                             width: 1.5,
@@ -514,7 +514,7 @@ class _Preview extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

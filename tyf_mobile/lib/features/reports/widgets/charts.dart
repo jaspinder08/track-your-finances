@@ -142,7 +142,7 @@ class TrendBars extends StatelessWidget {
           for (final m in months)
             Expanded(
               child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
                 onTap: () => onTap(m.month),
                 child: Builder(
                   builder: (context) {
@@ -160,7 +160,7 @@ class TrendBars extends StatelessWidget {
                             height: math.max(h, v > 0 ? 3 : 0),
                             decoration: BoxDecoration(
                               color: color,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                         );
@@ -210,7 +210,7 @@ class TrendBars extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isSel ? scheme.primary : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             DateFormat.MMM().format(m.month),

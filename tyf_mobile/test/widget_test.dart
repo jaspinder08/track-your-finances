@@ -264,7 +264,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Target amount'), findsOneWidget);
     expect(find.text('Expense'), findsNothing);
-    await tester.tap(find.byTooltip('Close'));
+    await tester.tap(find.byTooltip('Back').last);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Trip to Goa'));
