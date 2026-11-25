@@ -42,14 +42,25 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
 
     // Month totals for the summary strip.
-    var monthIncome = 0, monthExpense = 0;
+    var monthIncome = 0, monthExpense = 0, maxDayExpense = 0;
     for (final e in byDay.entries) {
       if (e.key.year != _month.year || e.key.month != _month.month) continue;
+      var dayExpense = 0;
       for (final x in e.value) {
         if (x.type == EntryType.income) monthIncome += x.amountPaise;
-        if (x.type == EntryType.expense) monthExpense += x.amountPaise;
+        if (x.type == EntryType.expense) dayExpense += x.amountPaise;
       }
+      monthExpense += dayExpense;
+      if (dayExpense > maxDayExpense) maxDayExpense = dayExpense;
     }
+    // Days so far this month (all of it for past months), for the average.
+    final isThisMonth =
+        _month.year == today.year && _month.month == today.month;
+    final daysCounted = _month.isAfter(today)
+        ? 0
+        : isThisMonth
+        ? today.day
+        : last.day;
     final scheme = theme.colorScheme;
 
     return Column(
@@ -95,7 +106,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-          child: _MonthStrip(income: monthIncome, expense: monthExpense),
+          child: _MonthStrip(
+            income: monthIncome,
+            expense: monthExpense,
+            perDay: daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -159,10 +174,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     isToday: day == today,
                     income: total(EntryType.income),
                     expense: total(EntryType.expense),
-                    hasOther: entries.any(
-                      (e) =>
-                          e.type == EntryType.transfer ||
-                          e.type == EntryType.goal,
+                    // How heavy this day's spending was, 0..1 of the
+                    // month's biggest day, for the heatmap tint.
+                    heat: day.month == _month.month && maxDayExpense > 0
+                        ? total(EntryType.expense) / maxDayExpense
+                        : 0,
+                    hasTransfer: entries.any(
+                      (e) => e.type == EntryType.transfer,
                     ),
                     onTap: () => entries.isEmpty
                         ? showAddTransactionScreen(context, initialDate: day)
@@ -178,17 +196,22 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-/// Income · Spent · Net for the visible month.
+/// Income · Spent · average spend per day for the visible month. (The
+/// month's net isn't shown: the balance pill above already says it.)
 class _MonthStrip extends StatelessWidget {
-  const _MonthStrip({required this.income, required this.expense});
+  const _MonthStrip({
+    required this.income,
+    required this.expense,
+    required this.perDay,
+  });
   final int income;
   final int expense;
+  final int perDay;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final net = income - expense;
     Widget item(String label, String value, Color color, IconData icon) =>
         Expanded(
           child: Row(
@@ -258,10 +281,10 @@ class _MonthStrip extends StatelessWidget {
           ),
           divider(),
           item(
-            'Net',
-            '${net < 0 ? '−' : ''}${Money.format(net.abs())}',
+            'Per day',
+            Money.format(perDay),
             scheme.primary,
-            Icons.account_balance_wallet_outlined,
+            Icons.today_rounded,
           ),
         ],
       ),
@@ -277,7 +300,8 @@ class _DayCell extends StatelessWidget {
     required this.isToday,
     required this.income,
     required this.expense,
-    required this.hasOther,
+    required this.heat,
+    required this.hasTransfer,
     required this.onTap,
   });
   final DateTime day;
@@ -285,16 +309,23 @@ class _DayCell extends StatelessWidget {
   final bool isToday;
   final int income;
   final int expense;
-  final bool hasOther;
+  final double heat;
+  final bool hasTransfer;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final active = income > 0 || expense > 0 || hasOther;
+    final active = income > 0 || expense > 0 || hasTransfer;
+    // Heatmap: heavier spending days glow redder.
     final bg = isToday
         ? scheme.primary.withValues(alpha: 0.12)
+        : heat > 0
+        ? Color.alphaBlend(
+            FinanceColors.expense.withValues(alpha: 0.08 + 0.30 * heat),
+            scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          )
         : active
         ? scheme.surfaceContainerHighest.withValues(alpha: 0.7)
         : inMonth
@@ -351,10 +382,15 @@ class _DayCell extends StatelessWidget {
                   '−${Money.compact(expense)}',
                   FinanceColors.expense,
                 ),
-              if (hasOther && income == 0 && expense == 0)
+              if (hasTransfer)
                 Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Icon(Icons.circle, size: 6, color: scheme.primary),
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 14,
+                    color: scheme.primary,
+                    semanticLabel: 'Transfer',
+                  ),
                 ),
             ],
           ),

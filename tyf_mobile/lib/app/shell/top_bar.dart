@@ -11,11 +11,15 @@ class TopBar extends StatelessWidget {
     required this.balancePaise,
     required this.onMenu,
     required this.onReports,
+    this.onBalance,
   });
 
   final int balancePaise;
   final VoidCallback onMenu;
   final VoidCallback onReports;
+
+  /// Tapping the balance pill (opens Accounts).
+  final VoidCallback? onBalance;
 
   @override
   Widget build(BuildContext context) {
@@ -30,49 +34,52 @@ class TopBar extends StatelessWidget {
             tooltip: 'Menu',
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.6,
+          GestureDetector(
+            onTap: onBalance,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.6,
+                ),
+                borderRadius: BorderRadius.circular(28),
               ),
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'BALANCE',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (c, a) => FadeTransition(
-                    opacity: a,
-                    child: SlideTransition(
-                      position: Tween(
-                        begin: const Offset(0, 0.3),
-                        end: Offset.zero,
-                      ).animate(a),
-                      child: c,
+              child: Column(
+                children: [
+                  Text(
+                    'BALANCE',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  child: Text(
-                    '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
-                    key: ValueKey(balancePaise),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: balancePaise < 0
-                          ? FinanceColors.expense
-                          : theme.colorScheme.onSurface,
+                  const SizedBox(height: 2),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (c, a) => FadeTransition(
+                      opacity: a,
+                      child: SlideTransition(
+                        position: Tween(
+                          begin: const Offset(0, 0.3),
+                          end: Offset.zero,
+                        ).animate(a),
+                        child: c,
+                      ),
+                    ),
+                    child: Text(
+                      '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
+                      key: ValueKey(balancePaise),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: balancePaise < 0
+                            ? FinanceColors.expense
+                            : theme.colorScheme.onSurface,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Spacer(),

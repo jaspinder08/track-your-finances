@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../app/theme/app_theme.dart';
 import '../../core/design/design.dart';
 import '../../core/utils/money.dart';
+import '../accounts/account_balances.dart';
 import '../calendar/widgets/day_entries_sheet.dart' show EntryTile;
 import '../categories/data/category_repository.dart';
 import '../transactions/data/entry.dart';
@@ -15,18 +16,26 @@ import '../transactions/widgets/swipe_entry.dart';
 /// What the History list is narrowed to.
 @immutable
 class HistoryFilter {
-  const HistoryFilter({this.query = '', this.type, this.category});
+  const HistoryFilter({
+    this.query = '',
+    this.type,
+    this.category,
+    this.account,
+  });
   final String query;
   final EntryType? type;
   final String? category;
+  final String? account;
 
-  bool get isEmpty => query.isEmpty && type == null && category == null;
+  bool get isEmpty =>
+      query.isEmpty && type == null && category == null && account == null;
 
   /// True if [e] should be listed.
   bool matches(Entry e) {
     if (e.isDeleted || e.type == EntryType.goal) return false;
     if (type != null && e.type != type) return false;
     if (category != null && e.data.category != category) return false;
+    if (account != null && !entryTouches(e, account!)) return false;
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
     final d = e.data;
@@ -61,7 +70,10 @@ List<(DateTime, List<Entry>)> groupByDay(List<Entry> all, HistoryFilter f) {
 
 /// Every transaction in one list, with search and filters.
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key});
+  const HistoryScreen({super.key, this.account});
+
+  /// Opens already filtered to this account (from the Accounts page).
+  final String? account;
 
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
@@ -69,7 +81,7 @@ class HistoryScreen extends ConsumerStatefulWidget {
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   final _search = TextEditingController();
-  var _filter = const HistoryFilter();
+  late var _filter = HistoryFilter(account: widget.account);
 
   @override
   void dispose() {
@@ -88,6 +100,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       query: query ?? _filter.query,
       type: clearType ? null : (type ?? _filter.type),
       category: clearCategory ? null : (category ?? _filter.category),
+      account: _filter.account,
     ),
   );
 
@@ -188,6 +201,26 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
+                if (_filter.account != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: InputChip(
+                      avatar: Icon(
+                        accountIcons[_filter.account] ??
+                            Icons.account_balance_outlined,
+                        size: 18,
+                      ),
+                      label: Text(_filter.account!),
+                      selected: true,
+                      onDeleted: () => setState(
+                        () => _filter = HistoryFilter(
+                          query: _filter.query,
+                          type: _filter.type,
+                          category: _filter.category,
+                        ),
+                      ),
+                    ),
+                  ),
                 typeChip('All', null),
                 typeChip('Expenses', EntryType.expense),
                 typeChip('Income', EntryType.income),

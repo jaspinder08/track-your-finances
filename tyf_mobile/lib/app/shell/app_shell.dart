@@ -9,6 +9,8 @@ import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/categories/widgets/category_editor_sheet.dart';
 import '../../features/budgets/data/budget_repository.dart';
+import '../../core/navigation/page_route.dart';
+import '../../features/accounts/accounts_screen.dart';
 import '../../features/insights/insights_sheet.dart';
 import '../../features/onboarding/setup_sheet.dart';
 import '../../features/sync/sync_controller.dart';
@@ -114,6 +116,9 @@ class _AppShellState extends ConsumerState<AppShell>
             TopBar(
               balancePaise: ref.watch(balanceProvider),
               onMenu: () => _scaffoldKey.currentState?.openDrawer(),
+              onBalance: () => Navigator.of(
+                context,
+              ).push(appPageRoute<void>(const AccountsScreen())),
               onReports: () =>
                   showInsightsSheet(context, onOpenReports: () => _go(3)),
             ),

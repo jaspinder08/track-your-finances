@@ -165,6 +165,12 @@ void main() {
 
     await tester.tap(find.byTooltip('Menu').first);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Accounts'));
+    await shot('08_accounts');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Menu').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('All transactions'));
     await shot('08a_history');
     await tester.pageBack();

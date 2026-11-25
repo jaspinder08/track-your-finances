@@ -78,10 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Add a transaction'), findsNothing); // page closed
-    expect(
-      find.text('−₹250'),
-      findsNWidgets(3),
-    ); // balance, month net, day cell
+    expect(find.text('−₹250'), findsNWidgets(2)); // balance, day cell
 
     await tester.tap(find.text('−₹250').last);
     await tester.pumpAndSettle();
@@ -318,8 +315,10 @@ void main() {
 
     // Rename Health -> Wellness: the existing entry moves with it.
     await tester.scrollUntilVisible(find.text('Health'), 200, scrollable: list);
-    expect(find.text('1 entry this month'), findsOneWidget);
-    await tester.tap(find.text('Health'));
+    expect(find.textContaining('1 entry'), findsOneWidget);
+    await tester.tap(find.text('Health')); // opens the card
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit Health'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Health'),
