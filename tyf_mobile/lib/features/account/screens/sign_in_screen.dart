@@ -5,6 +5,7 @@ import '../../../core/design/design.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../data/account.dart';
 import '../data/csv_export.dart';
+import '../../onboarding/setup_sheet.dart';
 
 /// Why the sign-in screen is showing.
 enum SignInMode {
@@ -109,8 +110,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _done(String email) async {
+    final setup = ref.read(setupPromptProvider.notifier);
     await ref.read(accountProvider.notifier).signedIn(email);
     if (mounted && widget.mode == SignInMode.voluntary) Navigator.pop(context);
+    // Shown by the app shell once it's on screen again.
+    setup.request();
   }
 
   Future<void> _google() async {

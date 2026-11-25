@@ -23,6 +23,7 @@ Future<EntryDraft?> showAddTransactionSheet(
   EntryType initialType = EntryType.expense,
   DateTime? initialDate,
   Entry? editing,
+  String? initialCategory,
 }) {
   return Navigator.of(context).push<EntryDraft>(
     PageRouteBuilder(
@@ -36,6 +37,7 @@ Future<EntryDraft?> showAddTransactionSheet(
         initialType: initialType,
         initialDate: initialDate,
         editing: editing,
+        initialCategory: initialCategory,
       ),
       transitionsBuilder: (_, animation, _, child) {
         final curved = CurvedAnimation(
@@ -61,10 +63,15 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
     this.initialType = EntryType.expense,
     this.initialDate,
     this.editing,
+    this.initialCategory,
   });
 
   final EntryType initialType;
   final DateTime? initialDate;
+
+  /// Category to pre-select when adding (ignored if it doesn't exist for
+  /// the entry type).
+  final String? initialCategory;
 
   /// The entry being edited; null when adding.
   final Entry? editing;
@@ -111,7 +118,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   void initState() {
     super.initState();
     final d = widget.editing?.data;
-    if (d == null) return;
+    if (d == null) {
+      final pick = widget.initialCategory;
+      if (pick != null) {
+        final set = ref.read(categorySetProvider);
+        final cats = _type == EntryType.income ? set.income : set.expense;
+        _category = cats.where((c) => c.name == pick).firstOrNull;
+      }
+      return;
+    }
     _amount.text = _rupees(d.amountPaise);
     _name.text = d.name ?? '';
     _description.text = d.description ?? '';

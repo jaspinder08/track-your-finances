@@ -6,6 +6,7 @@ import '../../features/budgets/widgets/budget_sheet.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/categories/widgets/category_editor_sheet.dart';
+import '../../features/onboarding/setup_sheet.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../../features/transactions/data/entry_repository.dart';
 import '../../features/transactions/screens/add_transaction_sheet.dart';
@@ -45,7 +46,27 @@ class _AppShellState extends ConsumerState<AppShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // After a sign-in from the daily/locked screen, the shell is built
+    // fresh with the request already pending.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowSetup());
+  }
+
+  void _maybeShowSetup() {
+    if (!mounted || !ref.read(setupPromptProvider)) return;
+    ref.read(setupPromptProvider.notifier).consume();
+    showSetupSheet(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // After a sign-in from the sidebar, the shell is already on screen.
+    ref.listen(setupPromptProvider, (_, pending) {
+      if (pending) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowSetup());
+      }
+    });
     return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),

@@ -94,6 +94,11 @@ between "log in" and "sign up":
   data is merged into that account. UUIDs prevent duplicates, and conflicts
   follow last-write-wins on `updated_at`.
 - **Sign out:** asks whether to keep this phone's data or remove it.
+- **Setup sheet:** right after every sign-in (Google or email), a bottom
+  sheet walks through 3 optional steps: choose or create a category → set
+  its monthly budget → add a first expense, income or transfer with that
+  category pre-filled. "I'll do this later" closes it.
+  Code: `lib/features/onboarding/setup_sheet.dart`.
 
 ## How a guest is tracked (Firebase)
 
@@ -196,7 +201,7 @@ between "log in" and "sign up":
 | Sidebar: name, Guest · N days left, Sign in | Done | `lib/app/shell/app_drawer.dart` |
 | Firebase Auth (anonymous guest, link to email, reset) | Done. Guest accounts verified on a device (25 Nov). Email sign-up, sign-in and reset are still to be tested on a device. | `lib/features/account/data/firebase_auth_repository.dart` |
 | Server trial start (`users/{uid}.trialStartedAt`) | Done, verified in Firestore | `FirebaseAuthRepository.ensureGuest` |
-| Google sign-in (link guest, or sign in to existing) | Built; needs SHA keys + new `google-services.json`, then a device test | `FirebaseAuthRepository.signInWithGoogle` |
+| Google sign-in (link guest, or sign in to existing) | Done, verified on a device (25 Nov) | `FirebaseAuthRepository.signInWithGoogle` |
 | Data sync (entries, budgets, categories) | Not started | — |
 
 **Firebase project:** `tyf---track-your-finances`. It's connected for
