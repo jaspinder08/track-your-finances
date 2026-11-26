@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/design/design.dart';
 import '../../calendar/widgets/day_entries_sheet.dart';
@@ -184,8 +185,9 @@ class _Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const on = HeroCard.foreground;
-    final dim = on.withValues(alpha: 0.75);
+    final scheme = theme.colorScheme;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
     final saved = report.saved;
     final rate = report.savingsRate;
     final vs = report.vsLastMonth;
@@ -206,7 +208,10 @@ class _Summary extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               if (rate != null)
-                _Badge(text: '${(rate * 100).round()}% of income', color: on),
+                _Badge(
+                  text: '${(rate * 100).round()}% of income',
+                  color: scheme.primary,
+                ),
             ],
           ),
           const SizedBox(height: 6),
@@ -253,7 +258,7 @@ class _Summary extends StatelessWidget {
                       ? AppIcons.trendingUpRounded
                       : AppIcons.trendingDownRounded,
                   size: 18,
-                  color: on,
+                  color: vs > 0 ? FinanceColors.income : FinanceColors.expense,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -261,7 +266,7 @@ class _Summary extends StatelessWidget {
                     vs == 0
                         ? 'Same spending as last month'
                         : '${(vs.abs() * 100).round()}% ${vs > 0 ? 'more' : 'less'} spending than last month',
-                    style: theme.textTheme.labelMedium?.copyWith(color: on),
+                    style: theme.textTheme.labelMedium?.copyWith(color: dim),
                   ),
                 ),
               ],

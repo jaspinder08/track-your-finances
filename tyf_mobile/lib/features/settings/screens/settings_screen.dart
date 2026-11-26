@@ -55,20 +55,20 @@ class SettingsScreen extends ConsumerWidget {
                       Text(
                         'Preview',
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: HeroCard.foreground.withValues(alpha: 0.8),
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: AppSpace.xs),
                       Text(
                         '₹24,500',
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: HeroCard.foreground,
+                          color: scheme.onSurface,
                         ),
                       ),
                       Text(
                         'saved this month',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: HeroCard.foreground.withValues(alpha: 0.8),
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -80,14 +80,58 @@ class SettingsScreen extends ConsumerWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: HeroCard.foreground.withValues(alpha: 0.18),
+                    color: scheme.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
                     settings.accent.label,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: HeroCard.foreground,
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          OptionPanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Theme mode', style: theme.textTheme.titleSmall),
+                Text(
+                  'Choose light, dark, or follow device system',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('System'),
+                        icon: Icon(Icons.brightness_auto_rounded, size: 18),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                        icon: Icon(Icons.light_mode_rounded, size: 18),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('Dark'),
+                        icon: Icon(Icons.dark_mode_rounded, size: 18),
+                      ),
+                    ],
+                    selected: {settings.mode},
+                    onSelectionChanged: (selected) {
+                      HapticFeedback.selectionClick();
+                      controller.setMode(selected.first);
+                    },
                   ),
                 ),
               ],

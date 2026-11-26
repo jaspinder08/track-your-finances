@@ -19,8 +19,9 @@ class TyfApp extends ConsumerWidget {
       navigatorKey: appNavigatorKey,
       title: 'TYF',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(settings.accent),
-      themeMode: ThemeMode.dark,
+      theme: AppTheme.light(settings.accent),
+      darkTheme: AppTheme.dark(settings.accent),
+      themeMode: settings.mode,
       home: const AppBackground(child: AccountGate()),
     );
   }

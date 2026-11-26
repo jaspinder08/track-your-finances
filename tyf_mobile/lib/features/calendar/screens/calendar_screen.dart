@@ -11,9 +11,8 @@ import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../widgets/day_entries_sheet.dart';
 
-/// Home tab: month summary cards, a month calendar, and a card for the
-/// selected day. Tap a day to select it; tap it again (or "View details")
-/// to see its entries, or add one if it's empty.
+/// Home tab: month summary cards and a month calendar. Tap a day to see
+/// its entries, or to add one if it's empty.
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
@@ -23,7 +22,6 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
-  late DateTime _selected = DateUtils.dateOnly(DateTime.now());
 
   void _shift(int months) {
     HapticFeedback.selectionClick();
@@ -33,20 +31,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   void _open(DateTime day, List<Entry> entries) => entries.isEmpty
       ? showAddTransactionScreen(context, initialDate: day)
       : showDayEntriesSheet(context, day);
-
-  void _tapDay(DateTime day, List<Entry> entries) {
-    if (day == _selected) {
-      _open(day, entries);
-      return;
-    }
-    HapticFeedback.selectionClick();
-    setState(() {
-      _selected = day;
-      if (day.month != _month.month || day.year != _month.year) {
-        _month = DateTime(day.year, day.month);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,50 +179,57 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                  LayoutBuilder(
+                    builder: (context, grid) {
+                      final rows = (days.length / 7).ceil();
+                      // Space left for the grid (header ≈ 62, stat cards
+                      // ≈ 92, panel + weekday row ≈ 60, nav bar ≈ 110).
+                      final avail = box.maxHeight - 62 - 92 - 60 - 110;
+                      final cellW = (grid.maxWidth - 6 * 6) / 7;
+                      final cellH = ((avail - 6 * (rows - 1)) / rows)
+                          .clamp(cellW * 1.1, cellW * 1.9)
+                          .toDouble();
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 7,
                           mainAxisSpacing: 6,
                           crossAxisSpacing: 6,
-                          childAspectRatio: 0.82,
+                          childAspectRatio: cellW / cellH,
                         ),
-                    itemCount: days.length,
-                    itemBuilder: (context, i) {
-                      final day = days[i];
-                      final entries = byDay[day] ?? const <Entry>[];
-                      int total(EntryType t) => entries
-                          .where((e) => e.type == t)
-                          .fold(0, (s, e) => s + e.amountPaise);
-                      final expense = total(EntryType.expense);
-                      return _DayCell(
-                        day: day,
-                        inMonth: day.month == _month.month,
-                        isToday: day == today,
-                        isSelected: day == _selected,
-                        income: total(EntryType.income),
-                        expense: expense,
-                        heat: day.month == _month.month && maxDayExpense > 0
-                            ? expense / maxDayExpense
-                            : 0,
-                        hasTransfer: entries.any(
-                          (e) => e.type == EntryType.transfer,
-                        ),
-                        onTap: () => _tapDay(day, entries),
+                        itemCount: days.length,
+                        itemBuilder: (context, i) {
+                          final day = days[i];
+                          final entries = byDay[day] ?? const <Entry>[];
+                          int total(EntryType t) => entries
+                              .where((e) => e.type == t)
+                              .fold(0, (s, e) => s + e.amountPaise);
+                          final expense = total(EntryType.expense);
+                          return _DayCell(
+                            day: day,
+                            inMonth: day.month == _month.month,
+                            isToday: day == today,
+                            income: total(EntryType.income),
+                            expense: expense,
+                            heat: day.month == _month.month && maxDayExpense > 0
+                                ? expense / maxDayExpense
+                                : 0,
+                            hasTransfer: entries.any(
+                              (e) => e.type == EntryType.transfer,
+                            ),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _open(day, entries);
+                            },
+                          );
+                        },
                       );
                     },
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 14),
-            _SelectedDayCard(
-              day: _selected,
-              entries: byDay[_selected] ?? const [],
-              onOpen: () => _open(_selected, byDay[_selected] ?? const []),
             ),
           ],
         ),
@@ -375,7 +366,6 @@ class _DayCell extends StatelessWidget {
     required this.day,
     required this.inMonth,
     required this.isToday,
-    required this.isSelected,
     required this.income,
     required this.expense,
     required this.heat,
@@ -385,7 +375,6 @@ class _DayCell extends StatelessWidget {
   final DateTime day;
   final bool inMonth;
   final bool isToday;
-  final bool isSelected;
   final int income;
   final int expense;
   final double heat;
@@ -415,14 +404,12 @@ class _DayCell extends StatelessWidget {
         : null;
     final Color? fill = spent
         ? null
-        : isSelected
-        ? scheme.primary.withValues(alpha: 0.22)
         : isToday
         ? scheme.primary.withValues(alpha: 0.12)
         : inMonth
         ? scheme.surfaceContainerHighest.withValues(alpha: 0.35)
         : scheme.surfaceContainerHighest.withValues(alpha: 0.12);
-    final borderColor = isSelected || isToday
+    final borderColor = isToday
         ? scheme.primary
         : spent
         ? FinanceColors.expense.withValues(alpha: 0.35 + 0.5 * heat)
@@ -437,10 +424,7 @@ class _DayCell extends StatelessWidget {
           color: fill,
           gradient: gradient,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: borderColor,
-            width: isSelected || isToday ? 2 : 1,
-          ),
+          border: Border.all(color: borderColor, width: isToday ? 2 : 1),
           boxShadow: [
             if (spent && heat > 0.5)
               BoxShadow(
@@ -482,16 +466,6 @@ class _DayCell extends StatelessWidget {
                   color: scheme.primary,
                   semanticLabel: 'Transfer',
                 ),
-              if (isToday || active)
-                Container(
-                  margin: const EdgeInsets.only(top: 3),
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: spent ? const Color(0xFFFF8A92) : scheme.primary,
-                  ),
-                ),
             ],
           ),
         ),
@@ -523,108 +497,6 @@ class _CellAmount extends StatelessWidget {
   );
 }
 
-/// The selected day: date, what happened, and "View details".
-class _SelectedDayCard extends StatelessWidget {
-  const _SelectedDayCard({
-    required this.day,
-    required this.entries,
-    required this.onOpen,
-  });
-  final DateTime day;
-  final List<Entry> entries;
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final n = entries.length;
-    final net = entries.fold(0, (s, e) => s + e.balanceEffect);
-    final summary = n == 0
-        ? 'No transactions'
-        : '$n ${n == 1 ? 'transaction' : 'transactions'}'
-              '${net == 0 ? '' : ' · ${net < 0 ? '−' : '+'}${Money.format(net.abs())}'}';
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: scheme.primary.withValues(alpha: 0.18),
-            ),
-            child: Icon(AppIcons.todayRounded, color: scheme.primary),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 180),
-              child: Column(
-                key: ValueKey('$day$n$net'),
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    DateFormat('d MMMM, y').format(day),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  Text(
-                    summary,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: scheme.primary.withValues(alpha: 0.16),
-            shape: const StadiumBorder(),
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              onTap: onOpen,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      n == 0 ? 'Add entry' : 'View details',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      n == 0
-                          ? AppIcons.addRounded
-                          : AppIcons.arrowForwardRounded,
-                      size: 16,
-                      color: scheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Shown until the first entry: what to do, instead of ₹0 cards.
 class _FirstRunHint extends StatelessWidget {
   const _FirstRunHint();
@@ -653,7 +525,7 @@ class _FirstRunHint extends StatelessWidget {
                   style: theme.textTheme.titleSmall,
                 ),
                 Text(
-                  'Tap a day below twice, or the + button, to note what you '
+                  'Tap any day below, or the + button, to note what you '
                   'spent or earned.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,

@@ -158,13 +158,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final entries = ref.watch(entriesProvider).value ?? const <Entry>[];
     final groups = groupByDay(entries, _filter);
     final list = groups.expand((g) => g.$2).toList();
-    final spent = list
-        .where((e) => e.type == EntryType.expense)
-        .fold(0, (s, e) => s + e.amountPaise);
-    final earned = list
-        .where((e) => e.type == EntryType.income)
-        .fold(0, (s, e) => s + e.amountPaise);
-    final net = earned - spent;
     final filtersOn = _filter.category != null || _filter.account != null;
 
     Widget typePill(String label, EntryType? t, IconData? icon, Color c) {
@@ -355,37 +348,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Row(
-              children: [
-                _TotalCard(
-                  label: 'Income',
-                  paise: earned,
-                  icon: AppIcons.arrowUpwardRounded,
-                  color: FinanceColors.income,
-                ),
-                const SizedBox(width: 8),
-                _TotalCard(
-                  label: 'Expenses',
-                  paise: spent,
-                  icon: AppIcons.arrowDownwardRounded,
-                  color: FinanceColors.expense,
-                ),
-                const SizedBox(width: 8),
-                _TotalCard(
-                  label: 'Net',
-                  paise: net,
-                  icon: AppIcons.barChartRounded,
-                  color: scheme.primary,
-                  signed: true,
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
             child: Row(
               children: [
                 Expanded(
@@ -419,21 +382,61 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               ),
             ),
           )
-        else
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, widget.asTab ? 120 : 32),
-            sliver: SliverList.separated(
-              itemCount: list.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => SwipeEntry(
-                entry: list[i],
-                child: _TxCard(
-                  entry: list[i],
-                  date: _dayLabel(DateUtils.dateOnly(list[i].date)),
+        else ...[
+          for (final (day, dayEntries) in groups) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    Text(
+                      _dayLabel(day),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurfaceVariant,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.surfaceContainerHighest.withValues(
+                          alpha: 0.6,
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        '${dayEntries.length}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList.separated(
+                itemCount: dayEntries.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (_, i) => SwipeEntry(
+                  entry: dayEntries[i],
+                  child: _TxCard(entry: dayEntries[i]),
+                ),
+              ),
+            ),
+          ],
+          SliverToBoxAdapter(
+            child: SizedBox(height: widget.asTab ? 120 : 32),
           ),
+        ],
       ],
     );
     if (widget.asTab) return body;
@@ -455,99 +458,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 }
 
-/// One of the three totals for what's listed.
-class _TotalCard extends StatelessWidget {
-  const _TotalCard({
-    required this.label,
-    required this.paise,
-    required this.icon,
-    required this.color,
-    this.signed = false,
-  });
-  final String label;
-  final int paise;
-  final IconData icon;
-  final Color color;
-
-  /// Shows − and colours red when negative (net balance).
-  final bool signed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final negative = signed && paise < 0;
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 12, 8, 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: 0.16),
-              scheme.surfaceContainerHigh.withValues(alpha: 0.6),
-            ],
-          ),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withValues(alpha: 0.2),
-                  ),
-                  child: Icon(icon, size: 14, color: color),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '${negative ? '−' : ''}${Money.format(paise.abs())}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: negative ? const Color(0xFFFF8A92) : null,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A transaction as a card: category tile, name, details, date, amount
+/// A transaction as a card: category tile, name, details, amount
 /// with a type tag, and a ⋮ menu (edit, duplicate, delete).
 class _TxCard extends ConsumerWidget {
-  const _TxCard({required this.entry, required this.date});
+  const _TxCard({required this.entry});
   final Entry entry;
-  final String date;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final d = entry.data;
     final glyph = ref.watch(categorySetProvider).emojiFor(d.category);
     final details = [
@@ -558,17 +479,26 @@ class _TxCard extends ConsumerWidget {
       if (d.subcategory != null) d.subcategory,
       if (d.paymentMethod != null) d.paymentMethod,
     ].join(' • ');
-    final (sign, color, tag) = switch (entry.type) {
+
+    final (sign, typeColor, tag) = switch (entry.type) {
       EntryType.income => ('+', FinanceColors.income, 'Income'),
-      EntryType.expense => ('−', const Color(0xFFFF6B78), 'Expense'),
+      EntryType.expense => ('−', FinanceColors.expense, 'Expense'),
+      EntryType.goal => ('', const Color(0xFF8B5CF6), 'Goal'),
       _ => ('', scheme.primary, 'Transfer'),
     };
 
+    final cardBg = Color.lerp(
+      scheme.surfaceContainerHigh,
+      typeColor,
+      isDark ? 0.14 : 0.09,
+    )!;
+    final cardBorder = typeColor.withValues(alpha: isDark ? 0.28 : 0.20);
+
     return Material(
-      color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+      color: cardBg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+        side: BorderSide(color: cardBorder),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -586,8 +516,8 @@ class _TxCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(15),
                         gradient: LinearGradient(
                           colors: [
-                            scheme.primary.withValues(alpha: 0.9),
-                            Color.lerp(scheme.primary, Colors.black, 0.35)!,
+                            typeColor.withValues(alpha: 0.9),
+                            Color.lerp(typeColor, Colors.black, 0.35)!,
                           ],
                         ),
                       ),
@@ -604,7 +534,8 @@ class _TxCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleMedium,
                     ),
-                    if (details.isNotEmpty)
+                    if (details.isNotEmpty) ...[
+                      const SizedBox(height: 2),
                       Text(
                         details,
                         maxLines: 1,
@@ -617,23 +548,7 @@ class _TxCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(
-                          AppIcons.scheduleRounded,
-                          size: 13,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          date,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -643,7 +558,10 @@ class _TxCard extends ConsumerWidget {
                 children: [
                   Text(
                     '$sign${Money.format(entry.amountPaise)}',
-                    style: theme.textTheme.titleMedium?.copyWith(color: color),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: typeColor,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Container(
@@ -652,13 +570,14 @@ class _TxCard extends ConsumerWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.22),
+                      color: typeColor.withValues(alpha: isDark ? 0.22 : 0.15),
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
                       tag,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: Color.lerp(color, Colors.white, 0.3),
+                        color: typeColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

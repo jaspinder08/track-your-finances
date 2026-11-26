@@ -84,8 +84,9 @@ class _Overview extends StatelessWidget {
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final daysLeft = daysInMonth - now.day + 1;
     final perDay = left > 0 ? left ~/ daysLeft : 0;
-    const on = HeroCard.foreground;
-    final dim = on.withValues(alpha: 0.72);
+    final isDark = theme.brightness == Brightness.dark;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
 
     return HeroCard(
       padding: EdgeInsets.zero,
@@ -105,7 +106,7 @@ class _Overview extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: on.withValues(alpha: 0.12),
+                              color: scheme.primary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
@@ -120,7 +121,8 @@ class _Overview extends StatelessWidget {
                               '${DateFormat.MMMM().format(now)} Budget',
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleSmall?.copyWith(
-                                color: Color.lerp(scheme.primary, on, 0.45),
+                                color: scheme.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -143,7 +145,7 @@ class _Overview extends StatelessWidget {
                             ? 'left to spend this month'
                             : 'over budget this month',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: left >= 0 ? dim : const Color(0xFFFF8A92),
+                          color: left >= 0 ? dim : FinanceColors.expense,
                         ),
                       ),
                     ],
@@ -153,9 +155,9 @@ class _Overview extends StatelessWidget {
                   width: 1,
                   height: 90,
                   margin: const EdgeInsets.symmetric(horizontal: 14),
-                  color: on.withValues(alpha: 0.12),
+                  color: scheme.outlineVariant.withValues(alpha: 0.35),
                 ),
-                _Ring(ratio: ratio, color: on),
+                _Ring(ratio: ratio, color: scheme.primary),
               ],
             ),
           ),
@@ -163,9 +165,13 @@ class _Overview extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.18),
+              color: scheme.surfaceContainerHighest.withValues(
+                alpha: isDark ? 0.35 : 0.45,
+              ),
               border: Border(
-                top: BorderSide(color: on.withValues(alpha: 0.08)),
+                top: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
+                ),
               ),
             ),
             child: IntrinsicHeight(
@@ -183,7 +189,7 @@ class _Overview extends StatelessWidget {
                     tint: FinanceColors.expense,
                     label: 'Spent',
                     value: Money.format(spent),
-                    valueColor: const Color(0xFFFF8A92),
+                    valueColor: FinanceColors.expense,
                   ),
                   _Divider(),
                   _Stat(
@@ -191,7 +197,7 @@ class _Overview extends StatelessWidget {
                     tint: FinanceColors.income,
                     label: perDay > 0 ? 'Per day' : 'Days left',
                     value: perDay > 0 ? Money.format(perDay) : '$daysLeft',
-                    valueColor: const Color(0xFF6EE7A8),
+                    valueColor: FinanceColors.income,
                   ),
                 ],
               ),
@@ -208,7 +214,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: 1,
     margin: const EdgeInsets.symmetric(vertical: 4),
-    color: HeroCard.foreground.withValues(alpha: 0.12),
+    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
   );
 }
 
@@ -229,7 +235,9 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    const on = HeroCard.foreground;
+    final scheme = Theme.of(context).colorScheme;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
     return Expanded(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -243,7 +251,7 @@ class _Stat extends StatelessWidget {
                 Text(
                   label,
                   style: t.labelSmall?.copyWith(
-                    color: on.withValues(alpha: 0.7),
+                    color: dim,
                   ),
                 ),
                 FittedBox(

@@ -266,7 +266,9 @@ class _SavingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const on = HeroCard.foreground;
+    final scheme = theme.colorScheme;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
     final saved = data.saved;
     final change = data.savedChange;
     final up = (change ?? 0) >= 0;
@@ -285,16 +287,16 @@ class _SavingsCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       AppIcons.trendingUpRounded,
-                      color: Color(0xFF6EE7A8),
+                      color: up ? FinanceColors.income : FinanceColors.expense,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       saved >= 0 ? 'Your Savings' : 'Overspent',
                       style: theme.textTheme.titleSmall?.copyWith(
-                        color: on.withValues(alpha: 0.85),
+                        color: dim,
                       ),
                     ),
                   ],
@@ -318,8 +320,8 @@ class _SavingsCard extends StatelessWidget {
                               '${up ? '↑' : '↓'} ${(change.abs() * 100).round()}%',
                           style: TextStyle(
                             color: up
-                                ? const Color(0xFF6EE7A8)
-                                : const Color(0xFFFF8A92),
+                                ? FinanceColors.income
+                                : FinanceColors.expense,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -327,7 +329,7 @@ class _SavingsCard extends StatelessWidget {
                       ],
                     ),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: on.withValues(alpha: 0.8),
+                      color: dim,
                     ),
                   )
                 else
@@ -336,7 +338,7 @@ class _SavingsCard extends StatelessWidget {
                         ? 'Nothing recorded yet'
                         : 'Keep going to see how you compare',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: on.withValues(alpha: 0.75),
+                      color: dim,
                     ),
                   ),
               ],
@@ -376,7 +378,7 @@ class _SavingsRing extends StatelessWidget {
               message: '${(rate * 100).round()}% of income saved',
               child: const Icon(
                 AppIcons.pottedPlant,
-                color: Color(0xFF6EE7A8),
+                color: FinanceColors.income,
                 size: 24,
               ),
             ),

@@ -58,8 +58,9 @@ class _Overview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const on = HeroCard.foreground;
-    final dim = on.withValues(alpha: 0.75);
+    final scheme = theme.colorScheme;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
     final saved = goals.fold(0, (s, g) => s + g.savedPaise);
     final target = goals.fold(0, (s, g) => s + g.targetPaise);
     final monthly = goals.fold(0, (s, g) => s + g.perMonthPaise);

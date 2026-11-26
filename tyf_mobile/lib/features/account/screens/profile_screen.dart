@@ -55,13 +55,11 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(
                     radius: 32,
-                    backgroundColor: HeroCard.foreground.withValues(
-                      alpha: 0.18,
-                    ),
+                    backgroundColor: scheme.primary.withValues(alpha: 0.15),
                     child: Text(
                       name.characters.first.toUpperCase(),
                       style: theme.textTheme.headlineSmall?.copyWith(
-                        color: HeroCard.foreground,
+                        color: scheme.primary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -76,7 +74,7 @@ class ProfileScreen extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleLarge?.copyWith(
-                            color: HeroCard.foreground,
+                            color: scheme.onSurface,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -85,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: HeroCard.foreground.withValues(alpha: 0.75),
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -93,7 +91,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: 'Edit name',
-                    color: HeroCard.foreground,
+                    color: scheme.primary,
                     onPressed: () => _editName(context, ref, account.name),
                     icon: const Icon(AppIcons.editOutlined),
                   ),

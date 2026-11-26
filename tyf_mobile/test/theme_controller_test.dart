@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,16 +19,22 @@ void main() {
   test('theme choices survive a restart', () async {
     final first = await _container();
     first.read(themeControllerProvider.notifier).setAccent(AccentColor.coral);
+    first.read(themeControllerProvider.notifier).setMode(ThemeMode.light);
     first.dispose();
 
     final second = await _container(); // simulates relaunch
     final s = second.read(themeControllerProvider);
     expect(s.accent, AccentColor.coral);
+    expect(s.mode, ThemeMode.light);
   });
 
   test('defaults when nothing is saved or value is unknown', () async {
-    SharedPreferences.setMockInitialValues({'theme_accent': 'gone'});
+    SharedPreferences.setMockInitialValues({
+      'theme_accent': 'gone',
+      'theme_mode': 'unknown',
+    });
     final s = (await _container()).read(themeControllerProvider);
     expect(s.accent, AccentColor.blue);
+    expect(s.mode, ThemeMode.system);
   });
 }

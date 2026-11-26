@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../app/theme/app_theme.dart';
 import '../insights/insights_sheet.dart';
 import '../../app/shell/top_bar.dart' show hideBalanceProvider;
 
@@ -42,7 +43,8 @@ class AccountsScreen extends ConsumerWidget {
     ).values.fold(0, (s, v) => s + v);
     final change = total - before;
     final hidden = ref.watch(hideBalanceProvider);
-    const on = HeroCard.foreground;
+    final on = scheme.onSurface;
+    final dim = scheme.onSurfaceVariant;
 
     Widget round(IconData icon, String tip, VoidCallback onTap) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -95,7 +97,8 @@ class AccountsScreen extends ConsumerWidget {
                                 Text(
                                   'Across all accounts',
                                   style: theme.textTheme.titleSmall?.copyWith(
-                                    color: Color.lerp(scheme.primary, on, 0.5),
+                                    color: scheme.primary,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -109,7 +112,7 @@ class AccountsScreen extends ConsumerWidget {
                                         ? AppIcons.visibilityOffOutlined
                                         : AppIcons.visibilityOutlined,
                                     size: 20,
-                                    color: Color.lerp(scheme.primary, on, 0.4),
+                                    color: scheme.primary,
                                     semanticLabel: hidden
                                         ? 'Show balance'
                                         : 'Hide balance',
@@ -154,8 +157,8 @@ class AccountsScreen extends ConsumerWidget {
                                       : AppIcons.arrowDownwardRounded,
                                   size: 16,
                                   color: change >= 0
-                                      ? const Color(0xFF6EE7A8)
-                                      : const Color(0xFFFF8A92),
+                                      ? FinanceColors.income
+                                      : FinanceColors.expense,
                                 ),
                                 const SizedBox(width: 4),
                                 Flexible(
@@ -166,7 +169,7 @@ class AccountsScreen extends ConsumerWidget {
                                               '${change >= 0 ? 'more' : 'less'} '
                                               'than last month',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: on.withValues(alpha: 0.8),
+                                      color: dim,
                                     ),
                                   ),
                                 ),
@@ -183,10 +186,10 @@ class AccountsScreen extends ConsumerWidget {
                     style: OutlinedButton.styleFrom(
                       shape: const StadiumBorder(),
                       minimumSize: const Size.fromHeight(52),
-                      foregroundColor: on,
-                      backgroundColor: on.withValues(alpha: 0.06),
+                      foregroundColor: scheme.primary,
+                      backgroundColor: scheme.primary.withValues(alpha: 0.08),
                       side: BorderSide(
-                        color: scheme.primary.withValues(alpha: 0.7),
+                        color: scheme.primary.withValues(alpha: 0.35),
                       ),
                     ),
                     onPressed: () => showAddTransactionScreen(
