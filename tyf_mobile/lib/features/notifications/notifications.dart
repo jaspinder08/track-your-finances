@@ -47,6 +47,10 @@ class Notifications {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
+      onDidReceiveNotificationResponse: (r) {
+        final p = r.payload;
+        if (p != null) taps.add(p);
+      },
     );
     _ready = true;
   }
@@ -68,14 +72,32 @@ class Notifications {
     return await ios?.requestPermissions(alert: true, sound: true) ?? true;
   }
 
-  Future<void> show(int id, String title, String body) async {
+  Future<void> show(
+    int id,
+    String title,
+    String body, {
+    String? payload,
+  }) async {
     await init();
     await _plugin.show(
       id: id,
       title: title,
       body: body,
       notificationDetails: _details,
+      payload: payload,
     );
+  }
+
+  /// Payloads of tapped notifications (the app routes on them).
+  final taps = StreamController<String>.broadcast();
+
+  /// The payload of the notification that launched the app, if any.
+  Future<String?> launchPayload() async {
+    await init();
+    final d = await _plugin.getNotificationAppLaunchDetails();
+    return d?.didNotificationLaunchApp == true
+        ? d!.notificationResponse?.payload
+        : null;
   }
 
   /// "Did you note today's spending?" every day at [time].
