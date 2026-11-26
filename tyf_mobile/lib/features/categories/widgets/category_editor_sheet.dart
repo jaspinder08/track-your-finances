@@ -8,8 +8,6 @@ import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
 import '../../../core/design/app_icons.dart';
 
-/// Emoji the picker offers, grouped loosely by theme.
-
 /// Opens the editor for a new category, or for [existing] if given.
 Future<void> showCategoryEditor(
   BuildContext context, {
@@ -173,14 +171,11 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       ],
                     ),
                   ),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      visualDensity: VisualDensity.compact,
-                    ),
+                  IconButton.filled(
+                    tooltip: 'Save',
+                    style: IconButton.styleFrom(shape: const CircleBorder()),
                     onPressed: _save,
-                    icon: const Icon(AppIcons.checkRounded, size: 18),
-                    label: const Text('Save'),
+                    icon: const Icon(AppIcons.checkRounded),
                   ),
                 ],
               ),

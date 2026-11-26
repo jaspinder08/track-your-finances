@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
-import '../data/goal.dart';
 import 'goals_view.dart';
 import '../../../core/design/app_icons.dart';
 
@@ -20,39 +18,19 @@ class GoalsScreen extends ConsumerStatefulWidget {
 }
 
 class _GoalsScreenState extends ConsumerState<GoalsScreen> {
-  bool _extended = true;
-
-  bool _onScroll(UserScrollNotification n) {
-    final e = switch (n.direction) {
-      ScrollDirection.reverse => false, // scrolling down the list
-      ScrollDirection.forward => true,
-      ScrollDirection.idle => _extended,
-    };
-    if (e != _extended) setState(() => _extended = e);
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final hasGoals = ref.watch(goalsProvider).isNotEmpty;
     return Scaffold(
       appBar: AppBar(title: const Text('Goals')),
-      floatingActionButton: hasGoals
-          ? FloatingActionButton.extended(
-              tooltip: 'New goal',
-              isExtended: _extended,
-              onPressed: () => showAddTransactionScreen(
-                context,
-                initialType: EntryType.goal,
-              ),
-              icon: const Icon(AppIcons.addRounded),
-              label: const Text('New goal'),
-            )
-          : null,
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: _onScroll,
-        child: const GoalsView(),
+      // Always there, so adding a goal is one tap from anywhere.
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'New goal',
+        onPressed: () =>
+            showAddTransactionScreen(context, initialType: EntryType.goal),
+        shape: const CircleBorder(),
+        child: const Icon(AppIcons.addRounded, size: 28),
       ),
+      body: const GoalsView(),
     );
   }
 }

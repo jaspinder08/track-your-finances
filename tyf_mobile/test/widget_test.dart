@@ -328,7 +328,7 @@ void main() {
       find.widgetWithText(TextFormField, 'Health'),
       'Wellness',
     );
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     expect((await entries.all()).single.data.category, 'Wellness');
     expect(find.text('Wellness'), findsOneWidget);
@@ -338,7 +338,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Expense category'), findsOneWidget); // editor open
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Food');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     expect(find.text('You already have "Food"'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Pets');
@@ -350,7 +350,7 @@ void main() {
     await tester.tap(find.byTooltip('Add subcategory'));
     await tester.pumpAndSettle();
     expect(find.text('Vet'), findsOneWidget);
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     expect(find.text('Expense category'), findsNothing); // saved and closed
     await tester.scrollUntilVisible(find.text('Pets'), 300, scrollable: list);

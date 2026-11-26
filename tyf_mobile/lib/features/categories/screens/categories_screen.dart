@@ -28,13 +28,13 @@ class CategoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
     appBar: AppBar(title: const Text('Categories')),
-    floatingActionButton: FloatingActionButton.extended(
+    floatingActionButton: FloatingActionButton(
       heroTag: 'new-category',
       tooltip: 'New category',
       onPressed: () =>
           showCategoryEditor(context, kind: ref.read(categoryKindViewProvider)),
-      icon: const Icon(AppIcons.addRounded),
-      label: const Text('New category'),
+      shape: const CircleBorder(),
+      child: const Icon(AppIcons.addRounded, size: 28),
     ),
     body: const CategoriesView(),
   );
