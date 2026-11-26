@@ -9,6 +9,7 @@ import 'package:tyf_mobile/features/categories/data/category_repository.dart';
 import 'package:tyf_mobile/features/transactions/data/entry_repository.dart';
 import 'package:tyf_mobile/features/transactions/data/entry.dart';
 import 'package:tyf_mobile/features/transactions/data/transaction_options.dart';
+import 'package:tyf_mobile/core/design/category_icons.dart';
 
 void main() {
   setUpAll(() => initializeDateFormatting('en_IN'));
@@ -335,13 +336,13 @@ void main() {
     // "New" on Categories adds one; duplicates are refused.
     await tester.tap(find.byTooltip('New category'));
     await tester.pumpAndSettle();
-    expect(find.text('New category'), findsOneWidget);
+    expect(find.text('Expense category'), findsOneWidget); // editor open
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Food');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(find.text('You already have "Food"'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Pets');
-    await tester.tap(find.text('🐶'));
+    await tester.tap(find.byIcon(CategoryIcons.all['pawPrint']!).last);
     await tester.enterText(
       find.widgetWithText(TextField, 'Add a subcategory'),
       'Vet',
@@ -351,7 +352,7 @@ void main() {
     expect(find.text('Vet'), findsOneWidget);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.text('New category'), findsNothing); // saved and closed
+    expect(find.text('Expense category'), findsNothing); // saved and closed
     await tester.scrollUntilVisible(find.text('Pets'), 300, scrollable: list);
     expect(find.text('Pets'), findsOneWidget);
 

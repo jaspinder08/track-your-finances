@@ -7,6 +7,7 @@ import '../../categories/data/category_repository.dart';
 import '../data/budget_repository.dart';
 import 'budget_progress_bar.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/design/category_icons.dart';
 
 /// Opens the "Set budget" sheet. Pass [category] to edit that budget
 /// (or start a new one with that category already picked).
@@ -193,10 +194,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                               AppIcons.pieChartRounded,
                               color: scheme.primary,
                             )
-                          : Text(
-                              _category!.emoji,
-                              style: const TextStyle(fontSize: 22),
-                            ),
+                          : CategoryGlyph(_category!.emoji),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -452,10 +450,7 @@ class _CategoryGrid extends StatelessWidget {
                             AnimatedScale(
                               scale: isSel ? 1.15 : 1,
                               duration: const Duration(milliseconds: 180),
-                              child: Text(
-                                c.emoji,
-                                style: const TextStyle(fontSize: 24),
-                              ),
+                              child: CategoryGlyph(c.emoji, size: 24),
                             ),
                             const SizedBox(height: 4),
                             Text(

@@ -436,7 +436,7 @@ class _CategoryBreakdown extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (sel?.emoji != null)
-                  Text(sel!.emoji!, style: const TextStyle(fontSize: 22)),
+                  CategoryGlyph(sel!.emoji!, color: colors[selected!]),
                 Text(
                   sel?.name ?? 'Spent',
                   style: theme.textTheme.labelMedium?.copyWith(
@@ -516,10 +516,7 @@ class _CategoryRow extends ConsumerWidget {
                 color: color.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(
-                slice.emoji ?? '💸',
-                style: const TextStyle(fontSize: 18),
-              ),
+              child: CategoryGlyph(slice.emoji ?? '💸', size: 20, color: color),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -616,8 +613,7 @@ class _CategoryRow extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                   child: Text(
-                    '${slice.emoji ?? ''} ${slice.name} · ${DateFormat.MMMM().format(month)}'
-                        .trim(),
+                    '${slice.name} · ${DateFormat.MMMM().format(month)}'.trim(),
                     style: theme.textTheme.titleLarge,
                   ),
                 ),

@@ -138,7 +138,8 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
                     Padding(
                       padding: const EdgeInsets.only(right: AppSpace.sm),
                       child: ChoiceChip(
-                        label: Text('${c.emoji} ${c.name}'),
+                        avatar: CategoryGlyph(c.emoji, size: 18),
+                        label: Text(c.name),
                         selected: c.name == _category,
                         onSelected: (_) => setState(() => _category = c.name),
                       ),
@@ -176,7 +177,7 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
                       ),
                       label: Text(
                         budget == null
-                            ? 'Budget for ${picked.emoji} ${picked.name}'
+                            ? 'Budget for ${picked.name}'
                             : '${Money.format(budget.limitPaise)}/month · Edit',
                       ),
                     ),

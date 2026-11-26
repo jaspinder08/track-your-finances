@@ -1094,10 +1094,7 @@ class _CategoryField extends FormField<CategoryOption> {
                                            14,
                                          ),
                                        ),
-                                       child: Text(
-                                         selected.emoji,
-                                         style: const TextStyle(fontSize: 22),
-                                       ),
+                                       child: CategoryGlyph(selected.emoji),
                                      ),
                              ),
                              const SizedBox(width: 12),
@@ -1372,10 +1369,7 @@ class _CategoryTile extends StatelessWidget {
               AnimatedScale(
                 scale: selected ? 1.15 : 1,
                 duration: const Duration(milliseconds: 180),
-                child: Text(
-                  category.emoji,
-                  style: const TextStyle(fontSize: 26),
-                ),
+                child: CategoryGlyph(category.emoji, size: 26),
               ),
               const SizedBox(height: 6),
               Text(

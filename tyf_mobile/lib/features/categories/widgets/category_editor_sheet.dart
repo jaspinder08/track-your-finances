@@ -1,72 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/category_icons.dart';
+
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
 import '../../../core/design/app_icons.dart';
 
 /// Emoji the picker offers, grouped loosely by theme.
-const _emojiChoices = [
-  '🏠',
-  '🍔',
-  '🛒',
-  '🍕',
-  '☕',
-  '🍺',
-  '🚗',
-  '⛽',
-  '🚌',
-  '✈️',
-  '🏨',
-  '🎬',
-  '🎮',
-  '🎵',
-  '🛍️',
-  '👕',
-  '👟',
-  '💄',
-  '💆',
-  '💇',
-  '🏋️',
-  '💊',
-  '🩺',
-  '🦷',
-  '📚',
-  '🎓',
-  '💻',
-  '📱',
-  '🧾',
-  '💡',
-  '💧',
-  '🔥',
-  '📶',
-  '💳',
-  '🏦',
-  '📈',
-  '💰',
-  '💼',
-  '🧑‍💻',
-  '🏪',
-  '🎁',
-  '↩️',
-  '🐶',
-  '👶',
-  '🧹',
-  '🔧',
-  '🌱',
-  '🙏',
-  '🎉',
-  '⚽',
-  '🏖️',
-  '🚕',
-  '🚆',
-  '🏥',
-  '🧴',
-  '🪙',
-  '🏷️',
-  '✨',
-];
 
 /// Opens the editor for a new category, or for [existing] if given.
 Future<void> showCategoryEditor(
@@ -105,7 +47,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.existing?.name);
   final _sub = TextEditingController();
-  late String _emoji = widget.existing?.emoji ?? '🏷️';
+  late String _emoji = widget.existing?.emoji ?? CategoryIcons.encode('tag');
   late final List<String> _subs = [...?widget.existing?.subcategories];
   String? _subError;
 
@@ -143,10 +85,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
       await n.add(widget.kind, c);
     }
     if (mounted) {
-      Navigator.pop(
-        context,
-        '${c.emoji} ${c.name} ${_editing ? 'updated' : 'added'}',
-      );
+      Navigator.pop(context, '${c.name} ${_editing ? 'updated' : 'added'}');
     }
   }
 
@@ -213,7 +152,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                         color: scheme.primary.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(_emoji, style: const TextStyle(fontSize: 26)),
+                      child: CategoryGlyph(_emoji, size: 26),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -285,7 +224,9 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        for (final e in _emojiChoices)
+                        for (final e in CategoryIcons.all.keys.map(
+                          CategoryIcons.encode,
+                        ))
                           InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () => setState(() => _emoji = e),
@@ -308,9 +249,11 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                                   width: 1.5,
                                 ),
                               ),
-                              child: Text(
+                              child: CategoryGlyph(
                                 e,
-                                style: const TextStyle(fontSize: 22),
+                                color: e == _emoji
+                                    ? scheme.primary
+                                    : scheme.onSurfaceVariant,
                               ),
                             ),
                           ),

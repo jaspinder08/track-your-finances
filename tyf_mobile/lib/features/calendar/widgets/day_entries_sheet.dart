@@ -10,6 +10,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../../transactions/widgets/swipe_entry.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/design/category_icons.dart';
 
 /// Lists one day's entries. Tap to edit; swipe left to delete (with
 /// Undo), right to duplicate to today.
@@ -139,7 +140,7 @@ class EntryTile extends ConsumerWidget {
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.14),
         child: emoji != null
-            ? Text(emoji, style: const TextStyle(fontSize: 20))
+            ? CategoryGlyph(emoji, size: 20)
             : Icon(entry.type.icon, color: theme.colorScheme.primary),
       ),
       title: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis),

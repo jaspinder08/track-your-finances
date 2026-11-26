@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'category_icons.dart';
+
 import 'tokens.dart';
 
 /// Rounded, tinted square holding an emoji or an icon: category and
@@ -38,7 +40,7 @@ class IconBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: emoji != null
-          ? Text(emoji!, style: TextStyle(fontSize: size * 0.5, height: 1))
+          ? CategoryGlyph(emoji, size: size * 0.5, color: c)
           : Icon(icon, size: size * 0.5, color: c),
     );
   }

@@ -375,7 +375,7 @@ class _UnbudgetedTile extends ConsumerWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        child: Text(emoji, style: const TextStyle(fontSize: 20)),
+        child: CategoryGlyph(emoji, size: 20),
       ),
       title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text('${Money.format(paise)} this month'),
@@ -425,7 +425,7 @@ class _Empty extends ConsumerWidget {
             children: [
               for (final name in picks)
                 ActionChip(
-                  avatar: Text(cats.emojiFor(name) ?? '💸'),
+                  avatar: CategoryGlyph(cats.emojiFor(name) ?? '💸', size: 18),
                   label: Text(name),
                   onPressed: () => showBudgetSheet(context, category: name),
                 ),

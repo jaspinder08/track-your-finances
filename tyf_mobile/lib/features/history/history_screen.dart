@@ -127,7 +127,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           children: [
             for (final o in {for (final o in options) o.name: o}.values)
               ListTile(
-                leading: Text(o.emoji, style: const TextStyle(fontSize: 22)),
+                leading: CategoryGlyph(o.emoji),
                 title: Text(o.name),
                 trailing: o.name == _filter.category
                     ? const Icon(AppIcons.checkRounded)

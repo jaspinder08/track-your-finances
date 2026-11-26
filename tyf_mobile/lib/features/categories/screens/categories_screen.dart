@@ -27,20 +27,14 @@ class CategoriesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Categories'),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: AddButton(
-            tooltip: 'New category',
-            onPressed: () => showCategoryEditor(
-              context,
-              kind: ref.read(categoryKindViewProvider),
-            ),
-          ),
-        ),
-      ],
+    appBar: AppBar(title: const Text('Categories')),
+    floatingActionButton: FloatingActionButton.extended(
+      heroTag: 'new-category',
+      tooltip: 'New category',
+      onPressed: () =>
+          showCategoryEditor(context, kind: ref.read(categoryKindViewProvider)),
+      icon: const Icon(AppIcons.addRounded),
+      label: const Text('New category'),
     ),
     body: const CategoriesView(),
   );
@@ -119,7 +113,12 @@ class CategoriesView extends ConsumerWidget {
         ),
         Expanded(
           child: ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              0,
+              16,
+              96,
+            ), // clear of the button
             itemCount: list.length,
             buildDefaultDragHandles: false,
             onReorder: (from, to) =>

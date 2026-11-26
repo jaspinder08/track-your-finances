@@ -43,9 +43,9 @@ void main() {
     expect(find.text('Let\'s set things up'), findsOneWidget);
     expect(find.text('Pick a category first.'), findsOneWidget);
 
-    await tester.tap(find.text('🍔 Food'));
+    await tester.tap(find.text('Food'));
     await tester.pumpAndSettle();
-    expect(find.text('Budget for 🍔 Food'), findsOneWidget);
+    expect(find.text('Budget for Food'), findsOneWidget);
 
     await tester.tap(find.text('Expense'));
     await tester.pumpAndSettle();
