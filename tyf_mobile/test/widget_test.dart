@@ -169,7 +169,7 @@ void main() {
     expect(find.text('Remove budget'), findsOneWidget);
   });
 
-  testWidgets('Reports shows summary, categories and drill-down', (
+  testWidgets('Analytics shows savings, categories and drill-down', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1080, 2400);
@@ -207,13 +207,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Reports').first);
+    await tester.tap(find.byTooltip('Analytics').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Saved this month'), findsOneWidget);
+    expect(find.text('Your Savings'), findsOneWidget);
     expect(find.text('₹30,000'), findsWidgets);
-    expect(find.text('75% of income'), findsOneWidget);
-    expect(find.text('Where it went'), findsOneWidget);
+    expect(find.text('Spending by Category'), findsOneWidget);
+    expect(find.text('Income vs Expense'), findsOneWidget);
+
+    await tester.ensureVisible(find.byTooltip('See Home entries'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('See Home entries'));
     await tester.pumpAndSettle();

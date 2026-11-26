@@ -15,7 +15,7 @@ import '../../features/history/history_screen.dart';
 import '../../features/insights/insights_sheet.dart';
 import '../../features/onboarding/setup_sheet.dart';
 import '../../features/sync/sync_controller.dart';
-import '../../features/reports/screens/reports_screen.dart';
+import '../../features/analytics/analytics_screen.dart';
 import '../../features/transactions/data/entry_repository.dart';
 import '../../features/transactions/screens/add_transaction_screen.dart';
 import 'app_drawer.dart';
@@ -76,14 +76,14 @@ class _AppShellState extends ConsumerState<AppShell>
       AppIcons.receiptLongRounded,
       'History',
     ),
-    NavItem(AppIcons.insightsOutlined, AppIcons.insightsRounded, 'Reports'),
+    NavItem(AppIcons.insightsOutlined, AppIcons.insightsRounded, 'Analytics'),
   ];
 
   static const _pages = [
     CalendarScreen(),
     BudgetsScreen(),
     HistoryScreen(asTab: true),
-    ReportsScreen(),
+    AnalyticsScreen(),
   ];
 
   @override

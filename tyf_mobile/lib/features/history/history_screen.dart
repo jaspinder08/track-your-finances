@@ -6,9 +6,8 @@ import '../../app/theme/app_theme.dart';
 import '../../core/design/design.dart';
 import '../../core/utils/money.dart';
 import '../accounts/account_balances.dart';
-import '../calendar/widgets/day_entries_sheet.dart' show EntryTile;
+import '../transactions/screens/add_transaction_screen.dart';
 import '../categories/data/category_repository.dart';
-import '../transactions/data/entry.dart';
 import '../transactions/data/entry_repository.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/widgets/swipe_entry.dart';
@@ -71,7 +70,15 @@ List<(DateTime, List<Entry>)> groupByDay(List<Entry> all, HistoryFilter f) {
 
 /// Every transaction in one list, with search and filters.
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key, this.account, this.asTab = false});
+  const HistoryScreen({
+    super.key,
+    this.account,
+    this.category,
+    this.asTab = false,
+  });
+
+  /// Opens already filtered to this category (from Analytics).
+  final String? category;
 
   /// Shown as a main tab: no app bar, room for the floating nav bar.
   final bool asTab;
@@ -85,7 +92,10 @@ class HistoryScreen extends ConsumerStatefulWidget {
 
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   final _search = TextEditingController();
-  late var _filter = HistoryFilter(account: widget.account);
+  late var _filter = HistoryFilter(
+    account: widget.account,
+    category: widget.category,
+  );
 
   @override
   void dispose() {
@@ -147,183 +157,283 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final scheme = theme.colorScheme;
     final entries = ref.watch(entriesProvider).value ?? const <Entry>[];
     final groups = groupByDay(entries, _filter);
-    final shown = groups.fold(0, (s, g) => s + g.$2.length);
-    final spent = groups
-        .expand((g) => g.$2)
+    final list = groups.expand((g) => g.$2).toList();
+    final spent = list
         .where((e) => e.type == EntryType.expense)
         .fold(0, (s, e) => s + e.amountPaise);
-    final earned = groups
-        .expand((g) => g.$2)
+    final earned = list
         .where((e) => e.type == EntryType.income)
         .fold(0, (s, e) => s + e.amountPaise);
+    final net = earned - spent;
+    final filtersOn = _filter.category != null || _filter.account != null;
 
-    Widget typeChip(String label, EntryType? t) => Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        showCheckmark: false,
-        selectedColor: scheme.primary,
-        labelStyle: TextStyle(
-          color: _filter.type == t ? scheme.onPrimary : scheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-        selected: _filter.type == t,
-        onSelected: (_) =>
-            _set(type: t, clearType: t == null, clearCategory: true),
-      ),
-    );
-
-    final body = Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: TextField(
-            controller: _search,
-            onChanged: (v) => _set(query: v),
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-              hintText: 'Search name, category, amount…',
-              prefixIcon: const Icon(AppIcons.searchRounded),
-              suffixIcon: _filter.query.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      icon: const Icon(AppIcons.close),
-                      onPressed: () {
-                        _search.clear();
-                        _set(query: '');
-                      },
+    Widget typePill(String label, EntryType? t, IconData? icon, Color c) {
+      final sel = _filter.type == t;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
+          color: sel
+              ? scheme.primary
+              : scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+          shape: StadiumBorder(
+            side: BorderSide(
+              color: sel
+                  ? scheme.primary
+                  : scheme.outlineVariant.withValues(alpha: 0.25),
+            ),
+          ),
+          child: InkWell(
+            customBorder: const StadiumBorder(),
+            onTap: () =>
+                _set(type: t, clearType: t == null, clearCategory: true),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(icon == null ? 18 : 5, 5, 14, 5),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (sel ? scheme.onPrimary : c).withValues(
+                          alpha: 0.2,
+                        ),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 14,
+                        color: sel ? scheme.onPrimary : c,
+                      ),
                     ),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    label,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: sel ? scheme.onPrimary : scheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        SizedBox(
-          height: 44,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              if (_filter.account != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InputChip(
-                    avatar: Icon(
-                      accountIcons[_filter.account] ??
-                          AppIcons.accountBalanceOutlined,
-                      size: 18,
+      );
+    }
+
+    final body = CustomScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    onChanged: (v) => _set(query: v),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search transactions…',
+                      prefixIcon: const Icon(AppIcons.searchRounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(100),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(100),
+                        borderSide: BorderSide(
+                          color: scheme.outlineVariant.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(100),
+                        borderSide: BorderSide(color: scheme.primary),
+                      ),
+                      suffixIcon: _filter.query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(AppIcons.close),
+                              onPressed: () {
+                                _search.clear();
+                                _set(query: '');
+                              },
+                            ),
                     ),
-                    label: Text(_filter.account!),
-                    selected: true,
-                    onDeleted: () => setState(
-                      () => _filter = HistoryFilter(
-                        query: _filter.query,
-                        type: _filter.type,
-                        category: _filter.category,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Badge(
+                  isLabelVisible: filtersOn,
+                  smallSize: 10,
+                  backgroundColor: scheme.primary,
+                  child: IconButton.filledTonal(
+                    tooltip: 'Filter by category',
+                    style: IconButton.styleFrom(
+                      shape: const CircleBorder(),
+                      fixedSize: const Size(56, 56),
+                      backgroundColor: scheme.surfaceContainerHigh.withValues(
+                        alpha: 0.8,
                       ),
                     ),
+                    onPressed: _filter.type == EntryType.transfer
+                        ? null
+                        : _pickCategory,
+                    icon: const Icon(AppIcons.tuneRounded),
                   ),
                 ),
-              typeChip('All', null),
-              typeChip('Expenses', EntryType.expense),
-              typeChip('Income', EntryType.income),
-              typeChip('Transfers', EntryType.transfer),
-              if (_filter.type != EntryType.transfer)
-                InputChip(
-                  avatar: const Icon(AppIcons.gridViewRounded, size: 18),
-                  label: Text(_filter.category ?? 'Category'),
-                  selected: _filter.category != null,
-                  onPressed: _pickCategory,
-                  onDeleted: _filter.category == null
-                      ? null
-                      : () => _set(clearCategory: true),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
-        // What the current list adds up to.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-          child: Row(
-            children: [
-              Text(
-                '$shown ${shown == 1 ? 'transaction' : 'transactions'}',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                typePill('All', null, null, scheme.primary),
+                typePill(
+                  'Expenses',
+                  EntryType.expense,
+                  AppIcons.arrowDownwardRounded,
+                  FinanceColors.expense,
+                ),
+                typePill(
+                  'Income',
+                  EntryType.income,
+                  AppIcons.arrowUpwardRounded,
+                  FinanceColors.income,
+                ),
+                typePill(
+                  'Transfers',
+                  EntryType.transfer,
+                  AppIcons.swapHorizRounded,
+                  scheme.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Active filters (category / account), each removable.
+        if (filtersOn)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  if (_filter.category != null)
+                    InputChip(
+                      label: Text(_filter.category!),
+                      onDeleted: () => _set(clearCategory: true),
+                    ),
+                  if (_filter.account != null)
+                    InputChip(
+                      avatar: Icon(
+                        accountIcons[_filter.account] ??
+                            AppIcons.accountBalanceOutlined,
+                        size: 18,
+                      ),
+                      label: Text(_filter.account!),
+                      onDeleted: () => setState(
+                        () => _filter = HistoryFilter(
+                          query: _filter.query,
+                          type: _filter.type,
+                          category: _filter.category,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Row(
+              children: [
+                _TotalCard(
+                  label: 'Income',
+                  paise: earned,
+                  icon: AppIcons.arrowUpwardRounded,
+                  color: FinanceColors.income,
+                ),
+                const SizedBox(width: 8),
+                _TotalCard(
+                  label: 'Expenses',
+                  paise: spent,
+                  icon: AppIcons.arrowDownwardRounded,
+                  color: FinanceColors.expense,
+                ),
+                const SizedBox(width: 8),
+                _TotalCard(
+                  label: 'Net',
+                  paise: net,
+                  icon: AppIcons.barChartRounded,
+                  color: scheme.primary,
+                  signed: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _filter.isEmpty ? 'Recent Transactions' : 'Results',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                Text(
+                  '${list.length} ${list.length == 1 ? 'transaction' : 'transactions'}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (list.isEmpty)
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 360,
+              child: EmptyState(
+                emoji: _filter.isEmpty ? '🧾' : '🔍',
+                title: _filter.isEmpty
+                    ? 'No transactions yet'
+                    : 'Nothing matches',
+                message: _filter.isEmpty
+                    ? 'Tap + to add your first one.'
+                    : 'Try another word or clear the filters.',
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, widget.asTab ? 120 : 32),
+            sliver: SliverList.separated(
+              itemCount: list.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (_, i) => SwipeEntry(
+                entry: list[i],
+                child: _TxCard(
+                  entry: list[i],
+                  date: _dayLabel(DateUtils.dateOnly(list[i].date)),
                 ),
               ),
-              const Spacer(),
-              if (earned > 0)
-                Text(
-                  '+${Money.format(earned)}  ',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: FinanceColors.income,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              if (spent > 0)
-                Text(
-                  '−${Money.format(spent)}',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: FinanceColors.expense,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
-        Expanded(
-          child: groups.isEmpty
-              ? EmptyState(
-                  emoji: _filter.isEmpty ? '🧾' : '🔍',
-                  title: _filter.isEmpty
-                      ? 'No transactions yet'
-                      : 'Nothing matches',
-                  message: _filter.isEmpty
-                      ? 'Tap + to add your first one.'
-                      : 'Try another word or clear the filters.',
-                )
-              : ListView.builder(
-                  padding: EdgeInsets.only(bottom: widget.asTab ? 120 : 32),
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  itemCount: groups.length,
-                  itemBuilder: (_, i) {
-                    final (day, list) = groups[i];
-                    final net = list.fold(0, (s, e) => s + e.balanceEffect);
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                          child: Row(
-                            children: [
-                              Text(
-                                _dayLabel(day),
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const Spacer(),
-                              if (net != 0)
-                                Text(
-                                  '${net < 0 ? '−' : '+'}${Money.format(net.abs())}',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: scheme.onSurfaceVariant,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        for (final e in list)
-                          SwipeEntry(
-                            entry: e,
-                            child: EntryTile(entry: e),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-        ),
       ],
     );
     if (widget.asTab) return body;
@@ -342,5 +452,242 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return d.year == today.year
         ? DateFormat('EEE, d MMM').format(d)
         : DateFormat('EEE, d MMM y').format(d);
+  }
+}
+
+/// One of the three totals for what's listed.
+class _TotalCard extends StatelessWidget {
+  const _TotalCard({
+    required this.label,
+    required this.paise,
+    required this.icon,
+    required this.color,
+    this.signed = false,
+  });
+  final String label;
+  final int paise;
+  final IconData icon;
+  final Color color;
+
+  /// Shows − and colours red when negative (net balance).
+  final bool signed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final negative = signed && paise < 0;
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 12, 8, 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: 0.16),
+              scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+            ],
+          ),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withValues(alpha: 0.2),
+                  ),
+                  child: Icon(icon, size: 14, color: color),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${negative ? '−' : ''}${Money.format(paise.abs())}',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: negative ? const Color(0xFFFF8A92) : null,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A transaction as a card: category tile, name, details, date, amount
+/// with a type tag, and a ⋮ menu (edit, duplicate, delete).
+class _TxCard extends ConsumerWidget {
+  const _TxCard({required this.entry, required this.date});
+  final Entry entry;
+  final String date;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final d = entry.data;
+    final glyph = ref.watch(categorySetProvider).emojiFor(d.category);
+    final details = [
+      if (entry.type == EntryType.transfer)
+        '${d.fromAccount ?? '?'} → ${d.toAccount ?? '?'}'
+      else if (d.category != null && d.category != entry.title)
+        d.category,
+      if (d.subcategory != null) d.subcategory,
+      if (d.paymentMethod != null) d.paymentMethod,
+    ].join(' • ');
+    final (sign, color, tag) = switch (entry.type) {
+      EntryType.income => ('+', FinanceColors.income, 'Income'),
+      EntryType.expense => ('−', const Color(0xFFFF6B78), 'Expense'),
+      _ => ('', scheme.primary, 'Transfer'),
+    };
+
+    return Material(
+      color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => showAddTransactionScreen(context, editing: entry),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+          child: Row(
+            children: [
+              glyph != null
+                  ? CategoryTile(name: d.category, glyph: glyph, size: 52)
+                  : Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        gradient: LinearGradient(
+                          colors: [
+                            scheme.primary.withValues(alpha: 0.9),
+                            Color.lerp(scheme.primary, Colors.black, 0.35)!,
+                          ],
+                        ),
+                      ),
+                      child: Icon(entry.type.icon, color: Colors.white),
+                    ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    if (details.isNotEmpty)
+                      Text(
+                        details,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Color.lerp(
+                            scheme.onSurfaceVariant,
+                            scheme.primary,
+                            0.35,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(
+                          AppIcons.scheduleRounded,
+                          size: 13,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          date,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$sign${Money.format(entry.amountPaise)}',
+                    style: theme.textTheme.titleMedium?.copyWith(color: color),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      tag,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Color.lerp(color, Colors.white, 0.3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'More',
+                icon: Icon(
+                  AppIcons.moreVertRounded,
+                  color: scheme.onSurfaceVariant,
+                ),
+                onSelected: (v) => switch (v) {
+                  'edit' => showAddTransactionScreen(context, editing: entry),
+                  'copy' => duplicateEntry(context, ref, entry),
+                  _ => deleteEntry(context, ref, entry),
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(
+                    value: 'copy',
+                    child: Text('Duplicate to today'),
+                  ),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

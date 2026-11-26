@@ -4,6 +4,16 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// strokes; "Fill" for selected and solid states. To change the icon set,
 /// change only this file. Names follow the Material icons they replaced.
 abstract final class AppIcons {
+  static const heartOutline = PhosphorIconsRegular.heart;
+  static const chartBarRising = PhosphorIconsFill.chartBar;
+  static const userPlus = PhosphorIconsRegular.userPlus;
+  static const crownSimple = PhosphorIconsFill.crownSimple;
+  static const pottedPlant = PhosphorIconsFill.plant;
+  static const showChartRounded = PhosphorIconsRegular.chartLine;
+  static const trackChangesRounded = PhosphorIconsRegular.target;
+  static const moreVertRounded = PhosphorIconsBold.dotsThreeVertical;
+  static const barChartRounded = PhosphorIconsFill.chartBar;
+  static const tuneRounded = PhosphorIconsRegular.slidersHorizontal;
   static const accountBalanceOutlined = PhosphorIconsRegular.bank;
   static const accountBalanceWalletOutlined = PhosphorIconsRegular.wallet;
   static const add = PhosphorIconsBold.plus;

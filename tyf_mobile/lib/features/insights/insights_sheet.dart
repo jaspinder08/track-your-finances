@@ -265,7 +265,7 @@ class InsightsSheet extends ConsumerWidget {
                   onOpenReports();
                 },
                 icon: const Icon(AppIcons.insightsRounded),
-                label: const Text('See full reports'),
+                label: const Text('See analytics'),
               ),
             ),
           ],

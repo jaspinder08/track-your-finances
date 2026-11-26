@@ -175,8 +175,12 @@ void main() {
     await tester.pumpAndSettle();
     await tab('History');
     await shot('04_history');
-    await tab('Reports');
-    await shot('05_reports');
+    await tab('Analytics');
+    await shot('05_analytics');
+    await tester.drag(find.text('Spending by Category'), const Offset(0, -900));
+    await shot('05b_analytics_bottom');
+    await tester.drag(find.text('Income vs Expense'), const Offset(0, 1500));
+    await tester.pumpAndSettle();
     await tab('Calendar');
 
     await tester.tap(find.byTooltip('Add transaction').first);
@@ -223,9 +227,13 @@ void main() {
 
     await tester.tap(find.byTooltip('Menu').first);
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Guest')); // account card → Profile
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign in to back up'));
     await shot('10_sign_in');
-    await tester.pageBack();
+    await tester.tap(find.byTooltip('Back').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back').last);
     await tester.pumpAndSettle();
 
     await tab('Budgets');

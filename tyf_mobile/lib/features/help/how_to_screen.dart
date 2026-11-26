@@ -54,9 +54,10 @@ class HowToScreen extends StatelessWidget {
     ),
     (
       '📊',
-      'Read your reports',
-      'The Reports tab shows where your money went, month by month, with '
-          'your savings and a six-month trend.',
+      'Read your analytics',
+      'The Analytics tab shows your savings, where your money went, income '
+          'vs expense, budgets and payment methods for this month, the last 6 '
+          'months or the year, plus your savings trend.',
     ),
     (
       '🏁',
