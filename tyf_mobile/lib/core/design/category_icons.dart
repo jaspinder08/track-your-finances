@@ -172,3 +172,98 @@ class CategoryGlyph extends StatelessWidget {
     );
   }
 }
+
+/// Each category's own colour. The defaults have fixed colours; others
+/// get one from the palette by name, so a category looks the same on
+/// every screen.
+const categoryPalette = [
+  Color(0xFF8B7CF6), // violet
+  Color(0xFF34C77B), // green
+  Color(0xFFF0616D), // red
+  Color(0xFFE8A93A), // amber
+  Color(0xFF2EC4C4), // teal
+  Color(0xFF5B8DEF), // blue
+  Color(0xFF3FB56E), // emerald
+  Color(0xFFF2557E), // pink
+  Color(0xFFA06BF0), // purple
+  Color(0xFFEF8A3C), // orange
+];
+
+const _fixedColors = {
+  'Home': 0,
+  'Food': 1,
+  'Travel': 2,
+  'Entertainment': 3,
+  'Shopping': 4,
+  'Bills': 5,
+  'Investment': 6,
+  'Health': 7,
+  'Personal': 8,
+  'Education': 9,
+  'Salary': 1,
+  'Freelance': 5,
+  'Business': 3,
+  'Investments': 6,
+  'Rental': 4,
+  'Gift': 7,
+  'Refund': 0,
+  'Other': 9,
+};
+
+Color categoryColor(String? name) {
+  if (name == null || name.isEmpty) return categoryPalette.first;
+  final int i =
+      _fixedColors[name] ??
+      name.codeUnits.fold<int>(0, (h, c) => (h * 31 + c) & 0x7fffffff);
+  return categoryPalette[i % categoryPalette.length];
+}
+
+/// The one category tile used everywhere: a rounded square in the
+/// category's colour, softly glowing, with a white icon.
+class CategoryTile extends StatelessWidget {
+  const CategoryTile({
+    super.key,
+    required this.name,
+    required this.glyph,
+    this.size = 48,
+    this.color,
+  });
+  final String? name;
+  final String? glyph;
+  final double size;
+
+  /// Overrides the category colour (e.g. to match a chart slice).
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? categoryColor(name);
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(size * 0.29),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            c.withValues(alpha: 0.95),
+            Color.lerp(c, Colors.black, 0.35)!,
+          ],
+        ),
+        boxShadow: size >= 32
+            ? [
+                BoxShadow(
+                  color: c.withValues(alpha: 0.35),
+                  blurRadius: size * 0.28,
+                  spreadRadius: -size * 0.07,
+                  offset: Offset(0, size * 0.1),
+                ),
+              ]
+            : null,
+      ),
+      child: CategoryGlyph(glyph, size: size * 0.5, color: Colors.white),
+    );
+  }
+}

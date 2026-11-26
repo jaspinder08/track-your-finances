@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/money.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_controller.dart';
 import '../../core/widgets/round_icon_button.dart';
 import '../../core/design/app_icons.dart';
 
 /// Top bar shared by the main tabs: menu, balance pill, reports shortcut.
-class TopBar extends StatelessWidget {
+/// Whether the balance is hidden (for using the app in public).
+/// Remembered between launches.
+final hideBalanceProvider = NotifierProvider<HideBalance, bool>(
+  HideBalance.new,
+);
+
+class HideBalance extends Notifier<bool> {
+  static const _k = 'hide_balance';
+
+  @override
+  bool build() => ref.read(sharedPreferencesProvider)?.getBool(_k) ?? false;
+
+  void toggle() {
+    state = !state;
+    ref.read(sharedPreferencesProvider)?.setBool(_k, state);
+  }
+}
+
+class TopBar extends ConsumerWidget {
   const TopBar({
     super.key,
     required this.balancePaise,
@@ -27,7 +47,8 @@ class TopBar extends StatelessWidget {
   final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hidden = ref.watch(hideBalanceProvider);
     final theme = Theme.of(context);
     return AnimatedPadding(
       duration: const Duration(milliseconds: 200),
@@ -84,15 +105,47 @@ class TopBar extends StatelessWidget {
                         child: c,
                       ),
                     ),
-                    child: Text(
-                      '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
-                      key: ValueKey(balancePaise),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: balancePaise < 0
-                            ? FinanceColors.expense
-                            : theme.colorScheme.onSurface,
-                      ),
+                    child: Row(
+                      key: ValueKey('$hidden$balancePaise'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          hidden
+                              ? '₹ • • • • •'
+                              : '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: balancePaise < 0
+                                ? FinanceColors.expense
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        InkResponse(
+                          radius: 18,
+                          onTap: () =>
+                              ref.read(hideBalanceProvider.notifier).toggle(),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.16,
+                              ),
+                            ),
+                            child: Icon(
+                              hidden
+                                  ? AppIcons.visibilityOffOutlined
+                                  : AppIcons.visibilityOutlined,
+                              size: 16,
+                              color: theme.colorScheme.primary,
+                              semanticLabel: hidden
+                                  ? 'Show balance'
+                                  : 'Hide balance',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

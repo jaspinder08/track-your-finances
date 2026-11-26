@@ -508,15 +508,11 @@ class _CategoryRow extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: CategoryGlyph(slice.emoji ?? '💸', size: 20, color: color),
+            CategoryTile(
+              name: slice.name,
+              glyph: slice.emoji ?? '💸',
+              size: 40,
+              color: color,
             ),
             const SizedBox(width: 12),
             Expanded(

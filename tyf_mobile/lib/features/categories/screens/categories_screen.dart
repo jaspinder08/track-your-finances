@@ -27,7 +27,21 @@ class CategoriesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(title: const Text('Categories')),
+    appBar: AppBar(
+      leadingWidth: 72,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: Center(
+          child: IconButton.filledTonal(
+            tooltip: 'Back',
+            style: IconButton.styleFrom(shape: const CircleBorder()),
+            onPressed: () => Navigator.maybePop(context),
+            icon: const Icon(AppIcons.arrowBackRounded),
+          ),
+        ),
+      ),
+      title: const Text('Categories'),
+    ),
     floatingActionButton: FloatingActionButton(
       heroTag: 'new-category',
       tooltip: 'New category',
@@ -64,35 +78,25 @@ class CategoriesView extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<CategoryKind>(
-              showSelectedIcon: false,
-              segments: const [
-                ButtonSegment(
-                  value: CategoryKind.expense,
-                  icon: Icon(AppIcons.northEastRounded),
-                  label: Text('Expense'),
-                ),
-                ButtonSegment(
-                  value: CategoryKind.income,
-                  icon: Icon(AppIcons.southWestRounded),
-                  label: Text('Income'),
-                ),
-              ],
-              selected: {kind},
-              onSelectionChanged: (s) =>
-                  ref.read(categoryKindViewProvider.notifier).set(s.first),
-            ),
+          child: _KindSwitch(
+            kind: kind,
+            onChanged: (k) =>
+                ref.read(categoryKindViewProvider.notifier).set(k),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 8, 4),
+          padding: const EdgeInsets.fromLTRB(20, 6, 16, 10),
           child: Row(
             children: [
+              Icon(
+                AppIcons.gridViewRounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '${list.length} categories · hold and drag to reorder',
+                  '${list.length} categories  •  Hold and drag to reorder',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -100,6 +104,12 @@ class CategoriesView extends ConsumerWidget {
               ),
               PopupMenuButton<String>(
                 tooltip: 'More',
+                style: IconButton.styleFrom(
+                  shape: const CircleBorder(),
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                ),
                 onSelected: (_) => _confirmReset(context, ref, kind),
                 itemBuilder: (_) => const [
                   PopupMenuItem(
@@ -138,6 +148,7 @@ class CategoriesView extends ConsumerWidget {
                 child: ReorderableDelayedDragStartListener(
                   index: i,
                   child: _CategoryCard(
+                    index: i,
                     category: c,
                     monthPaise: s?.$1 ?? 0,
                     monthCount: s?.$2 ?? 0,
@@ -184,16 +195,18 @@ class CategoriesView extends ConsumerWidget {
   }
 }
 
-/// One category: emoji, name, this month's spend and its share of the
-/// month. Tap to open it and see its sub-categories and Edit.
+/// One category: a glowing colour tile, name, this month's spend in a
+/// pill and its share as a bar. Tap to open sub-categories and Edit.
 class _CategoryCard extends StatefulWidget {
   const _CategoryCard({
+    required this.index,
     required this.category,
     required this.monthPaise,
     required this.monthCount,
     required this.share,
     required this.onEdit,
   });
+  final int index;
   final CategoryOption category;
   final int monthPaise;
   final int monthCount;
@@ -216,120 +229,267 @@ class _CategoryCardState extends State<_CategoryCard> {
     final c = widget.category;
     final subs = c.subcategories;
     final n = widget.monthCount;
+    final active = n > 0;
     final details = [
-      n == 0
-          ? 'Nothing this month'
-          : subs.isEmpty
-          ? '$n ${n == 1 ? 'entry' : 'entries'} this month'
-          : '$n ${n == 1 ? 'entry' : 'entries'}',
+      active ? '$n ${n == 1 ? 'entry' : 'entries'}' : 'Nothing this month',
       if (subs.isNotEmpty)
         '${subs.length} ${subs.length == 1 ? 'sub-category' : 'sub-categories'}',
-    ].join(' · ');
+    ].join('  •  ');
 
-    return AppCard(
-      onTap: () => setState(() => _open = !_open),
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              IconBadge.emoji(c.emoji, size: 44),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      c.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      details,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (n > 0)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    Money.format(widget.monthPaise),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              AnimatedRotation(
-                turns: _open ? 0.5 : 0,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  AppIcons.expandMoreRounded,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          // Share of this month's total, as a thin bar.
-          if (n > 0) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 56, right: 6),
-              child: BudgetProgressBar(
-                ratio: widget.share,
-                color: scheme.primary,
-                height: 5,
-              ),
-            ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        // Categories with spending this month stand out: tinted, with an
+        // accent edge.
+        gradient: LinearGradient(
+          colors: [
+            active
+                ? Color.lerp(scheme.surfaceContainerHigh, scheme.primary, 0.16)!
+                : scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+            scheme.surfaceContainerHigh.withValues(alpha: 0.7),
           ],
-          AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: !_open
-                ? const SizedBox(width: double.infinity)
-                : Padding(
-                    padding: const EdgeInsets.only(left: 56, top: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+        ),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () => setState(() => _open = !_open),
+          child: Stack(
+            children: [
+              // Accent edge for categories with spending this month.
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: active ? 4 : 0,
+                  color: scheme.primary,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
                       children: [
-                        if (subs.isEmpty)
-                          Text(
-                            'No sub-categories yet',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: [for (final s in subs) _MiniChip(s)],
+                        CategoryTile(name: c.name, glyph: c.emoji, size: 56),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      c.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(fontSize: 17),
+                                    ),
+                                  ),
+                                  if (active)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scheme.surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        Money.format(widget.monthPaise),
+                                        style: theme.textTheme.titleSmall,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                details,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                              if (active) ...[
+                                const SizedBox(height: 10),
+                                BudgetProgressBar(
+                                  ratio: widget.share,
+                                  color: scheme.primary,
+                                  height: 5,
+                                ),
+                              ],
+                            ],
                           ),
-                        const SizedBox(height: 10),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: FilledButton.tonalIcon(
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 38),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            onPressed: widget.onEdit,
-                            icon: const Icon(AppIcons.editOutlined, size: 18),
-                            label: Text('Edit ${c.name}'),
+                        ),
+                        const SizedBox(width: 6),
+                        AnimatedRotation(
+                          turns: _open ? 0.25 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            AppIcons.chevronRightRounded,
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.topCenter,
+                      child: !_open
+                          ? const SizedBox(width: double.infinity)
+                          : Padding(
+                              padding: const EdgeInsets.only(left: 70, top: 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (subs.isEmpty)
+                                    Text(
+                                      'No sub-categories yet',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: scheme.onSurfaceVariant,
+                                          ),
+                                    )
+                                  else
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: [
+                                        for (final s in subs) _MiniChip(s),
+                                      ],
+                                    ),
+                                  const SizedBox(height: 10),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: FilledButton.tonalIcon(
+                                      style: FilledButton.styleFrom(
+                                        minimumSize: const Size(0, 38),
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                      onPressed: widget.onEdit,
+                                      icon: const Icon(
+                                        AppIcons.editOutlined,
+                                        size: 18,
+                                      ),
+                                      label: Text('Edit ${c.name}'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Expense | Income as a pill with a sliding accent thumb.
+class _KindSwitch extends StatelessWidget {
+  const _KindSwitch({required this.kind, required this.onChanged});
+  final CategoryKind kind;
+  final ValueChanged<CategoryKind> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isExpense = kind == CategoryKind.expense;
+
+    Widget side(CategoryKind k, IconData icon, String label) {
+      final sel = k == kind;
+      return Expanded(
+        child: Semantics(
+          selected: sel,
+          button: true,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(100),
+            onTap: () => onChanged(k),
+            child: SizedBox(
+              height: 52,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: sel ? scheme.onPrimary : scheme.onSurfaceVariant,
                   ),
+                  const SizedBox(width: 10),
+                  Text(
+                    label,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: sel ? scheme.onPrimary : scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: scheme.outlineVariant.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Stack(
+        children: [
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            alignment: isExpense ? Alignment.centerLeft : Alignment.centerRight,
+            child: FractionallySizedBox(
+              widthFactor: 0.5,
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(100),
+                  gradient: LinearGradient(
+                    colors: [
+                      scheme.primary,
+                      Color.lerp(scheme.primary, Colors.white, 0.12)!,
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      spreadRadius: -4,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              side(CategoryKind.expense, AppIcons.northEastRounded, 'Expense'),
+              side(CategoryKind.income, AppIcons.southWestRounded, 'Income'),
+            ],
           ),
         ],
       ),

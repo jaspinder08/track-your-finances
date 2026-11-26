@@ -180,22 +180,27 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                     duration: const Duration(milliseconds: 220),
                     transitionBuilder: (child, a) =>
                         ScaleTransition(scale: a, child: child),
-                    child: Container(
-                      key: ValueKey(_category?.name),
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.14),
-                        shape: BoxShape.circle,
-                      ),
-                      child: _category == null
-                          ? Icon(
+                    child: _category == null
+                        ? Container(
+                            key: const ValueKey('none'),
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: scheme.primary.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(13),
+                            ),
+                            child: Icon(
                               AppIcons.pieChartRounded,
                               color: scheme.primary,
-                            )
-                          : CategoryGlyph(_category!.emoji),
-                    ),
+                            ),
+                          )
+                        : CategoryTile(
+                            key: ValueKey(_category!.name),
+                            name: _category!.name,
+                            glyph: _category!.emoji,
+                            size: 44,
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -448,9 +453,13 @@ class _CategoryGrid extends StatelessWidget {
                         child: Column(
                           children: [
                             AnimatedScale(
-                              scale: isSel ? 1.15 : 1,
+                              scale: isSel ? 1.1 : 1,
                               duration: const Duration(milliseconds: 180),
-                              child: CategoryGlyph(c.emoji, size: 24),
+                              child: CategoryTile(
+                                name: c.name,
+                                glyph: c.emoji,
+                                size: 40,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(

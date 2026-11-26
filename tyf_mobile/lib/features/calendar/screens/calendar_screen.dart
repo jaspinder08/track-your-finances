@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../core/design/app_icons.dart';
 import '../../../core/utils/money.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../widgets/day_entries_sheet.dart';
-import '../../../core/design/app_icons.dart';
 
-/// Home tab: a month calendar. Each day shows its income and expense
-/// totals; tap a day to see its entries (or add one if it's empty).
+/// Home tab: month summary cards, a month calendar, and a card for the
+/// selected day. Tap a day to select it; tap it again (or "View details")
+/// to see its entries, or add one if it's empty.
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
 
@@ -21,28 +23,48 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
+  late DateTime _selected = DateUtils.dateOnly(DateTime.now());
 
-  void _shift(int months) =>
-      setState(() => _month = DateTime(_month.year, _month.month + months));
+  void _shift(int months) {
+    HapticFeedback.selectionClick();
+    setState(() => _month = DateTime(_month.year, _month.month + months));
+  }
+
+  void _open(DateTime day, List<Entry> entries) => entries.isEmpty
+      ? showAddTransactionScreen(context, initialDate: day)
+      : showDayEntriesSheet(context, day);
+
+  void _tapDay(DateTime day, List<Entry> entries) {
+    if (day == _selected) {
+      _open(day, entries);
+      return;
+    }
+    HapticFeedback.selectionClick();
+    setState(() {
+      _selected = day;
+      if (day.month != _month.month || day.year != _month.year) {
+        _month = DateTime(day.year, day.month);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final byDay = ref.watch(entriesByDayProvider);
     final today = DateUtils.dateOnly(DateTime.now());
 
-    // Grid starts on the Monday on/before the 1st, ends on the Sunday on/after the last day.
+    // Grid: Monday on/before the 1st to Sunday on/after the last day.
     final first = DateTime(_month.year, _month.month, 1);
     final start = first.subtract(Duration(days: first.weekday - 1));
     final last = DateTime(_month.year, _month.month + 1, 0);
     final end = last.add(Duration(days: 7 - last.weekday));
-    final dayCount = end.difference(start).inDays + 1;
     final days = List.generate(
-      dayCount,
+      end.difference(start).inDays + 1,
       (i) => DateTime(start.year, start.month, start.day + i),
     );
 
-    // Month totals for the summary strip.
     var monthIncome = 0, monthExpense = 0, maxDayExpense = 0;
     for (final e in byDay.entries) {
       if (e.key.year != _month.year || e.key.month != _month.month) continue;
@@ -54,7 +76,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       monthExpense += dayExpense;
       if (dayExpense > maxDayExpense) maxDayExpense = dayExpense;
     }
-    // Days so far this month (all of it for past months), for the average.
     final isThisMonth =
         _month.year == today.year && _month.month == today.month;
     final daysCounted = _month.isAfter(today)
@@ -62,245 +83,299 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         : isThisMonth
         ? today.day
         : last.day;
-    final scheme = theme.colorScheme;
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => _shift(-1),
-                icon: const Icon(AppIcons.chevronLeftRounded),
-                tooltip: 'Previous month',
+    Widget roundButton(IconData icon, String tip, VoidCallback onTap) =>
+        IconButton.filledTonal(
+          tooltip: tip,
+          style: IconButton.styleFrom(
+            shape: const CircleBorder(),
+            backgroundColor: scheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            foregroundColor: scheme.primary,
+          ),
+          onPressed: onTap,
+          icon: Icon(icon),
+        );
+
+    return LayoutBuilder(
+      builder: (context, box) => SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+        child: Column(
+          children: [
+            // Month: ‹ November 2026 ›
+            Row(
+              children: [
+                roundButton(
+                  AppIcons.chevronLeftRounded,
+                  'Previous month',
+                  () => _shift(-1),
+                ),
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      DateFormat('MMMM y').format(_month),
+                      key: ValueKey(_month),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleLarge,
+                    ),
+                  ),
+                ),
+                roundButton(
+                  AppIcons.chevronRightRounded,
+                  'Next month',
+                  () => _shift(1),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (byDay.isEmpty)
+              const _FirstRunHint()
+            else
+              Row(
+                children: [
+                  _StatCard(
+                    label: 'Income',
+                    value: Money.format(monthIncome),
+                    icon: AppIcons.southWestRounded,
+                    color: FinanceColors.income,
+                  ),
+                  const SizedBox(width: 10),
+                  _StatCard(
+                    label: 'Spent',
+                    value: Money.format(monthExpense),
+                    icon: AppIcons.northEastRounded,
+                    color: FinanceColors.expense,
+                  ),
+                  const SizedBox(width: 10),
+                  _StatCard(
+                    label: 'Per day',
+                    value: Money.format(
+                      daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
+                    ),
+                    icon: AppIcons.todayRounded,
+                    color: scheme.primary,
+                  ),
+                ],
               ),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: Column(
-                    key: ValueKey(_month),
+            const SizedBox(height: 14),
+            // The month grid, on its own panel.
+            Container(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHigh.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      Text(
-                        DateFormat.MMMM().format(_month),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
+                      for (final d in [
+                        'Mon',
+                        'Tue',
+                        'Wed',
+                        'Thu',
+                        'Fri',
+                        'Sat',
+                        'Sun',
+                      ])
+                        Expanded(
+                          child: Text(
+                            d,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${_month.year}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
                     ],
                   ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => _shift(1),
-                icon: const Icon(AppIcons.chevronRightRounded),
-                tooltip: 'Next month',
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-          child: byDay.isEmpty
-              ? const _FirstRunHint()
-              : _MonthStrip(
-                  income: monthIncome,
-                  expense: monthExpense,
-                  perDay: daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
-                ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              for (final (i, d) in [
-                'Mon',
-                'Tue',
-                'Wed',
-                'Thu',
-                'Fri',
-                'Sat',
-                'Sun',
-              ].indexed)
-                Expanded(
-                  child: Text(
-                    d,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: i >= 5
-                          ? scheme.primary.withValues(alpha: 0.8)
-                          : scheme.onSurfaceVariant,
-                    ),
+                  const SizedBox(height: 10),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 7,
+                          mainAxisSpacing: 6,
+                          crossAxisSpacing: 6,
+                          childAspectRatio: 0.82,
+                        ),
+                    itemCount: days.length,
+                    itemBuilder: (context, i) {
+                      final day = days[i];
+                      final entries = byDay[day] ?? const <Entry>[];
+                      int total(EntryType t) => entries
+                          .where((e) => e.type == t)
+                          .fold(0, (s, e) => s + e.amountPaise);
+                      final expense = total(EntryType.expense);
+                      return _DayCell(
+                        day: day,
+                        inMonth: day.month == _month.month,
+                        isToday: day == today,
+                        isSelected: day == _selected,
+                        income: total(EntryType.income),
+                        expense: expense,
+                        heat: day.month == _month.month && maxDayExpense > 0
+                            ? expense / maxDayExpense
+                            : 0,
+                        hasTransfer: entries.any(
+                          (e) => e.type == EntryType.transfer,
+                        ),
+                        onTap: () => _tapDay(day, entries),
+                      );
+                    },
                   ),
-                ),
-            ],
-          ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            _SelectedDayCard(
+              day: _selected,
+              entries: byDay[_selected] ?? const [],
+              onOpen: () => _open(_selected, byDay[_selected] ?? const []),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, box) {
-              // Fit every week on screen above the floating nav bar.
-              const bottomPad = 112.0, gap = 4.0;
-              final rows = (days.length / 7).ceil();
-              final cellW = (box.maxWidth - 24 - gap * 6) / 7;
-              final cellH =
-                  ((box.maxHeight - bottomPad - gap * (rows - 1)) / rows).clamp(
-                    52.0,
-                    96.0,
-                  );
-              return GridView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, bottomPad),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                  mainAxisSpacing: gap,
-                  crossAxisSpacing: gap,
-                  childAspectRatio: cellW / cellH,
-                ),
-                itemCount: days.length,
-                itemBuilder: (context, i) {
-                  final day = days[i];
-                  final entries = byDay[day] ?? const <Entry>[];
-                  int total(EntryType t) => entries
-                      .where((e) => e.type == t)
-                      .fold(0, (s, e) => s + e.amountPaise);
-                  return _DayCell(
-                    day: day,
-                    inMonth: day.month == _month.month,
-                    isToday: day == today,
-                    income: total(EntryType.income),
-                    expense: total(EntryType.expense),
-                    // How heavy this day's spending was, 0..1 of the
-                    // month's biggest day, for the heatmap tint.
-                    heat: day.month == _month.month && maxDayExpense > 0
-                        ? total(EntryType.expense) / maxDayExpense
-                        : 0,
-                    hasTransfer: entries.any(
-                      (e) => e.type == EntryType.transfer,
-                    ),
-                    onTap: () => entries.isEmpty
-                        ? showAddTransactionScreen(context, initialDate: day)
-                        : showDayEntriesSheet(context, day),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-/// Income · Spent · average spend per day for the visible month. (The
-/// month's net isn't shown: the balance pill above already says it.)
-class _MonthStrip extends StatelessWidget {
-  const _MonthStrip({
-    required this.income,
-    required this.expense,
-    required this.perDay,
+/// One of the three summary cards: tinted, with a soft wave at the foot.
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
   });
-  final int income;
-  final int expense;
-  final int perDay;
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    Widget item(String label, String value, Color color, IconData icon) =>
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 15, color: color),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        value,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return Expanded(
+      child: Container(
+        height: 78,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: 0.16),
+              scheme.surfaceContainerHigh.withValues(alpha: 0.6),
             ],
           ),
-        );
-    Widget divider() => Container(
-      width: 1,
-      height: 28,
-      color: scheme.outlineVariant.withValues(alpha: 0.5),
-    );
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          item(
-            'Income',
-            Money.format(income),
-            FinanceColors.income,
-            AppIcons.southWestRounded,
-          ),
-          divider(),
-          item(
-            'Spent',
-            Money.format(expense),
-            FinanceColors.expense,
-            AppIcons.northEastRounded,
-          ),
-          divider(),
-          item(
-            'Per day',
-            Money.format(perDay),
-            scheme.primary,
-            AppIcons.todayRounded,
-          ),
-        ],
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _WavePainter(color))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 0, 8, 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color.withValues(alpha: 0.18),
+                    ),
+                    child: Icon(icon, size: 18, color: color),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            value,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// One day: rounded tile, today filled with the accent, amounts below.
+/// A soft rising wave along the bottom of a stat card.
+class _WavePainter extends CustomPainter {
+  const _WavePainter(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final line = Path()
+      ..moveTo(0, h - 6)
+      ..cubicTo(w * 0.35, h - 2, w * 0.55, h - 4, w * 0.75, h - 12)
+      ..quadraticBezierTo(w * 0.9, h - 18, w, h - 20);
+    final fill = Path.from(line)
+      ..lineTo(w, h)
+      ..lineTo(0, h)
+      ..close();
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [color.withValues(alpha: 0.22), color.withValues(alpha: 0)],
+        ).createShader(Offset.zero & size),
+    );
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = color.withValues(alpha: 0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_WavePainter old) => old.color != color;
+}
+
+/// One day tile. Spending days glow (stronger for heavier days), today
+/// has an accent outline, the selected day a filled accent tint.
 class _DayCell extends StatelessWidget {
   const _DayCell({
     required this.day,
     required this.inMonth,
     required this.isToday,
+    required this.isSelected,
     required this.income,
     required this.expense,
     required this.heat,
@@ -310,6 +385,7 @@ class _DayCell extends StatelessWidget {
   final DateTime day;
   final bool inMonth;
   final bool isToday;
+  final bool isSelected;
   final int income;
   final int expense;
   final double heat;
@@ -320,62 +396,76 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final spent = expense > 0 && inMonth;
     final active = income > 0 || expense > 0 || hasTransfer;
-    // Heatmap: heavier spending days glow redder.
-    final bg = isToday
-        ? scheme.primary.withValues(alpha: 0.12)
-        : heat > 0
-        ? Color.alphaBlend(
-            FinanceColors.expense.withValues(alpha: 0.08 + 0.30 * heat),
-            scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+
+    final Gradient? gradient = spent
+        ? LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.lerp(
+                scheme.primary,
+                FinanceColors.expense,
+                0.35,
+              )!.withValues(alpha: 0.25 + 0.4 * heat),
+              FinanceColors.expense.withValues(alpha: 0.12 + 0.3 * heat),
+            ],
           )
-        : active
-        ? scheme.surfaceContainerHighest.withValues(alpha: 0.7)
+        : null;
+    final Color? fill = spent
+        ? null
+        : isSelected
+        ? scheme.primary.withValues(alpha: 0.22)
+        : isToday
+        ? scheme.primary.withValues(alpha: 0.12)
         : inMonth
-        ? scheme.surfaceContainerHighest.withValues(alpha: 0.28)
+        ? scheme.surfaceContainerHighest.withValues(alpha: 0.35)
+        : scheme.surfaceContainerHighest.withValues(alpha: 0.12);
+    final borderColor = isSelected || isToday
+        ? scheme.primary
+        : spent
+        ? FinanceColors.expense.withValues(alpha: 0.35 + 0.5 * heat)
         : Colors.transparent;
 
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          decoration: isToday
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: scheme.primary.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                )
-              : null,
-          padding: const EdgeInsets.only(top: 6, left: 2, right: 2),
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: BoxDecoration(
+          color: fill,
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: borderColor,
+            width: isSelected || isToday ? 2 : 1,
+          ),
+          boxShadow: [
+            if (spent && heat > 0.5)
+              BoxShadow(
+                color: FinanceColors.expense.withValues(alpha: 0.25 * heat),
+                blurRadius: 14,
+                spreadRadius: -4,
+              ),
+          ],
+        ),
+        padding: const EdgeInsets.all(3),
+        // Scales down rather than overflow on small screens.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                alignment: Alignment.center,
-                decoration: isToday
-                    ? BoxDecoration(
-                        color: scheme.primary,
-                        shape: BoxShape.circle,
-                      )
-                    : null,
-                child: Text(
-                  '${day.day}',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: isToday || active
-                        ? FontWeight.w700
-                        : FontWeight.w500,
-                    color: isToday
-                        ? scheme.onPrimary
-                        : inMonth
-                        ? scheme.onSurface
-                        : scheme.onSurface.withValues(alpha: 0.3),
-                  ),
+              Text(
+                '${day.day}',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: active || isToday
+                      ? FontWeight.w800
+                      : FontWeight.w600,
+                  color: inMonth
+                      ? scheme.onSurface
+                      : scheme.onSurface.withValues(alpha: 0.3),
                 ),
               ),
               if (income > 0)
@@ -383,16 +473,23 @@ class _DayCell extends StatelessWidget {
               if (expense > 0)
                 _CellAmount(
                   '−${Money.compact(expense)}',
-                  FinanceColors.expense,
+                  spent ? const Color(0xFFFF8A92) : FinanceColors.expense,
                 ),
               if (hasTransfer)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    AppIcons.swapHorizRounded,
-                    size: 14,
-                    color: scheme.primary,
-                    semanticLabel: 'Transfer',
+                Icon(
+                  AppIcons.swapHorizRounded,
+                  size: 12,
+                  color: scheme.primary,
+                  semanticLabel: 'Transfer',
+                ),
+              if (isToday || active)
+                Container(
+                  margin: const EdgeInsets.only(top: 3),
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: spent ? const Color(0xFFFF8A92) : scheme.primary,
                   ),
                 ),
             ],
@@ -403,7 +500,6 @@ class _DayCell extends StatelessWidget {
   }
 }
 
-/// Tiny amount line inside a calendar cell.
 class _CellAmount extends StatelessWidget {
   const _CellAmount(this.text, this.color);
   final String text;
@@ -417,16 +513,119 @@ class _CellAmount extends StatelessWidget {
       child: Text(
         text,
         maxLines: 1,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
           color: color,
-          fontWeight: FontWeight.w600,
         ),
       ),
     ),
   );
 }
 
-/// Shown until the first entry: what to do, instead of a row of ₹0.
+/// The selected day: date, what happened, and "View details".
+class _SelectedDayCard extends StatelessWidget {
+  const _SelectedDayCard({
+    required this.day,
+    required this.entries,
+    required this.onOpen,
+  });
+  final DateTime day;
+  final List<Entry> entries;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final n = entries.length;
+    final net = entries.fold(0, (s, e) => s + e.balanceEffect);
+    final summary = n == 0
+        ? 'No transactions'
+        : '$n ${n == 1 ? 'transaction' : 'transactions'}'
+              '${net == 0 ? '' : ' · ${net < 0 ? '−' : '+'}${Money.format(net.abs())}'}';
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: scheme.primary.withValues(alpha: 0.18),
+            ),
+            child: Icon(AppIcons.todayRounded, color: scheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: Column(
+                key: ValueKey('$day$n$net'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    DateFormat('d MMMM, y').format(day),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  Text(
+                    summary,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Material(
+            color: scheme.primary.withValues(alpha: 0.16),
+            shape: const StadiumBorder(),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: onOpen,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      n == 0 ? 'Add entry' : 'View details',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: scheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      n == 0
+                          ? AppIcons.addRounded
+                          : AppIcons.arrowForwardRounded,
+                      size: 16,
+                      color: scheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown until the first entry: what to do, instead of ₹0 cards.
 class _FirstRunHint extends StatelessWidget {
   const _FirstRunHint();
 
@@ -438,7 +637,7 @@ class _FirstRunHint extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: scheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
@@ -451,12 +650,10 @@ class _FirstRunHint extends StatelessWidget {
               children: [
                 Text(
                   'Add your first transaction',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: theme.textTheme.titleSmall,
                 ),
                 Text(
-                  'Tap any day below, or the + button, to note what you '
+                  'Tap a day below twice, or the + button, to note what you '
                   'spent or earned.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,

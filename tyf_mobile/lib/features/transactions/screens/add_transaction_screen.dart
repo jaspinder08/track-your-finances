@@ -1081,20 +1081,11 @@ class _CategoryField extends FormField<CategoryOption> {
                                        AppIcons.gridViewRounded,
                                        color: scheme.onSurfaceVariant,
                                      )
-                                   : Container(
+                                   : CategoryTile(
                                        key: ValueKey(selected.name),
-                                       width: 44,
-                                       height: 44,
-                                       alignment: Alignment.center,
-                                       decoration: BoxDecoration(
-                                         color: scheme.primary.withValues(
-                                           alpha: 0.14,
-                                         ),
-                                         borderRadius: BorderRadius.circular(
-                                           14,
-                                         ),
-                                       ),
-                                       child: CategoryGlyph(selected.emoji),
+                                       name: selected.name,
+                                       glyph: selected.emoji,
+                                       size: 44,
                                      ),
                              ),
                              const SizedBox(width: 12),
@@ -1367,9 +1358,13 @@ class _CategoryTile extends StatelessWidget {
           child: Column(
             children: [
               AnimatedScale(
-                scale: selected ? 1.15 : 1,
+                scale: selected ? 1.1 : 1,
                 duration: const Duration(milliseconds: 180),
-                child: CategoryGlyph(category.emoji, size: 26),
+                child: CategoryTile(
+                  name: category.name,
+                  glyph: category.emoji,
+                  size: 42,
+                ),
               ),
               const SizedBox(height: 6),
               Text(

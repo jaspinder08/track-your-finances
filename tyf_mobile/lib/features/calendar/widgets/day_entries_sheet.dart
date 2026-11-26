@@ -137,12 +137,17 @@ class EntryTile extends ConsumerWidget {
 
     return ListTile(
       onTap: () => showAddTransactionScreen(context, editing: entry),
-      leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.14),
-        child: emoji != null
-            ? CategoryGlyph(emoji, size: 20)
-            : Icon(entry.type.icon, color: theme.colorScheme.primary),
-      ),
+      leading: emoji != null
+          ? CategoryTile(name: d.category, glyph: emoji, size: 44)
+          : Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(13),
+                color: theme.colorScheme.primary.withValues(alpha: 0.18),
+              ),
+              child: Icon(entry.type.icon, color: theme.colorScheme.primary),
+            ),
       title: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: subtitle.isEmpty ? Text(entry.type.label) : Text(subtitle),
       trailing: Text(

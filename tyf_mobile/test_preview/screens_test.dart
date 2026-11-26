@@ -169,7 +169,7 @@ void main() {
 
     await tab('Budgets');
     await shot('03_budgets');
-    await tester.drag(find.text('Category budgets'), const Offset(0, -300));
+    await tester.drag(find.text('Category Budgets'), const Offset(0, -300));
     await shot('03b_budgets_scrolled');
     await tester.drag(find.text('Spending without a budget'), const Offset(0, 900));
     await tester.pumpAndSettle();
@@ -234,10 +234,7 @@ void main() {
     await tester.tapAt(const Offset(200, 60));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.text('Category budgets'), const Offset(0, -1200));
-    await tester.pumpAndSettle();
-    await shot('11b_budgets_bottom');
-    await tester.tap(find.text('Manage categories'));
+    await tester.tap(find.text('Manage Categories'));
     await shot('12_categories');
     await tester.tap(find.byTooltip('New category'));
     await shot('13_category_editor');

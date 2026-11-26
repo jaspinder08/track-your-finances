@@ -12,6 +12,7 @@ abstract final class AppIcons {
   static const arrowBackRounded = PhosphorIconsRegular.arrowLeft;
   static const arrowDownwardRounded = PhosphorIconsRegular.arrowDown;
   static const arrowDropDownRounded = PhosphorIconsBold.caretDown;
+  static const arrowForwardRounded = PhosphorIconsRegular.arrowRight;
   static const arrowUpwardRounded = PhosphorIconsRegular.arrowUp;
   static const autoAwesomeRounded = PhosphorIconsFill.sparkle;
   static const calendarMonth = PhosphorIconsFill.calendarBlank;

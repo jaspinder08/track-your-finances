@@ -141,16 +141,11 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                     duration: const Duration(milliseconds: 200),
                     transitionBuilder: (c, a) =>
                         ScaleTransition(scale: a, child: c),
-                    child: Container(
+                    child: CategoryTile(
                       key: ValueKey(_emoji),
-                      width: 48,
-                      height: 48,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: CategoryGlyph(_emoji, size: 26),
+                      name: widget.existing?.name,
+                      glyph: _emoji,
+                      size: 48,
                     ),
                   ),
                   const SizedBox(width: 12),

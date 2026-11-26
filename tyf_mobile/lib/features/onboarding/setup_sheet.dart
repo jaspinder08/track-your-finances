@@ -138,7 +138,11 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
                     Padding(
                       padding: const EdgeInsets.only(right: AppSpace.sm),
                       child: ChoiceChip(
-                        avatar: CategoryGlyph(c.emoji, size: 18),
+                        avatar: CategoryTile(
+                          name: c.name,
+                          glyph: c.emoji,
+                          size: 24,
+                        ),
                         label: Text(c.name),
                         selected: c.name == _category,
                         onSelected: (_) => setState(() => _category = c.name),

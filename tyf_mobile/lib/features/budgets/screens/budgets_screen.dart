@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/design/design.dart';
 import '../../../core/navigation/page_route.dart';
@@ -45,10 +46,8 @@ class BudgetsView extends ConsumerWidget {
       children: [
         FadeSlideIn(child: _Overview(progress: progress)),
         const SizedBox(height: 24),
-        SectionHeader(
-          'Category budgets',
-          trailing: AddButton(onPressed: () => showBudgetSheet(context)),
-        ),
+        const _SectionTitle(),
+        const SizedBox(height: 12),
         for (final (i, p) in progress.indexed) ...[
           FadeSlideIn(
             index: i + 1,
@@ -62,14 +61,13 @@ class BudgetsView extends ConsumerWidget {
           for (final e in unbudgeted)
             _UnbudgetedTile(name: e.key, paise: e.value),
         ],
-        const SizedBox(height: 16),
-        const _ManageCategories(),
       ],
     );
   }
 }
 
-/// Accent gradient card: what's left this month, a ring, and a daily pace.
+/// The month card: what's left to spend, a "% used" ring, and a band of
+/// Budgeted · Spent · Per day.
 class _Overview extends StatelessWidget {
   const _Overview({required this.progress});
   final List<BudgetProgress> progress;
@@ -77,6 +75,7 @@ class _Overview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final limit = progress.fold(0, (s, p) => s + p.budget.limitPaise);
     final spent = progress.fold(0, (s, p) => s + p.spentPaise);
     final left = limit - spent;
@@ -85,117 +84,177 @@ class _Overview extends StatelessWidget {
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final daysLeft = daysInMonth - now.day + 1;
     final perDay = left > 0 ? left ~/ daysLeft : 0;
-    final over = progress.where((p) => p.isOver).length;
-    final near = progress.where((p) => p.isNear).length;
     const on = HeroCard.foreground;
-    final dim = on.withValues(alpha: 0.75);
+    final dim = on.withValues(alpha: 0.72);
 
     return HeroCard(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${DateFormat.MMMM().format(now)} budget',
-                      style: theme.textTheme.labelLarge?.copyWith(color: dim),
-                    ),
-                    const SizedBox(height: 6),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: AnimatedMoney(
-                        left.abs(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: on,
-                          fontWeight: FontWeight.w800,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 18, 18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: on.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              AppIcons.eventRounded,
+                              size: 20,
+                              color: scheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              '${DateFormat.MMMM().format(now)} Budget',
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: Color.lerp(scheme.primary, on, 0.45),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: AnimatedMoney(
+                          left.abs(),
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: on,
+                          ),
                         ),
                       ),
-                    ),
-                    Text(
-                      left >= 0 ? 'left to spend' : 'over budget',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: dim),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        left >= 0
+                            ? 'left to spend this month'
+                            : 'over budget this month',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: left >= 0 ? dim : const Color(0xFFFF8A92),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _Ring(ratio: ratio, color: on),
-            ],
+                Container(
+                  width: 1,
+                  height: 90,
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
+                  color: on.withValues(alpha: 0.12),
+                ),
+                _Ring(ratio: ratio, color: on),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              _Stat(label: 'Budgeted', value: Money.format(limit), color: on),
-              _Stat(label: 'Spent', value: Money.format(spent), color: on),
-              _Stat(
-                label: perDay > 0 ? 'Per day' : 'Days left',
-                value: perDay > 0 ? Money.format(perDay) : '$daysLeft',
-                color: on,
+          // Stats band.
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.18),
+              border: Border(
+                top: BorderSide(color: on.withValues(alpha: 0.08)),
               ),
-            ],
-          ),
-          if (over + near > 0) ...[
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: on.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            ),
+            child: IntrinsicHeight(
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.infoOutlineRounded, size: 16, color: on),
-                  const SizedBox(width: 8),
-                  Text(
-                    [
-                      if (over > 0) '$over over budget',
-                      if (near > 0) '$near almost used up',
-                    ].join(' · '),
-                    style: theme.textTheme.labelMedium?.copyWith(color: on),
+                  _Stat(
+                    icon: AppIcons.accountBalanceWalletOutlined,
+                    tint: scheme.primary,
+                    label: 'Budgeted',
+                    value: Money.format(limit),
+                  ),
+                  _Divider(),
+                  _Stat(
+                    icon: AppIcons.accountBalanceWalletOutlined,
+                    tint: FinanceColors.expense,
+                    label: 'Spent',
+                    value: Money.format(spent),
+                    valueColor: const Color(0xFFFF8A92),
+                  ),
+                  _Divider(),
+                  _Stat(
+                    icon: AppIcons.todayRounded,
+                    tint: FinanceColors.income,
+                    label: perDay > 0 ? 'Per day' : 'Days left',
+                    value: perDay > 0 ? Money.format(perDay) : '$daysLeft',
+                    valueColor: const Color(0xFF6EE7A8),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 1,
+    margin: const EdgeInsets.symmetric(vertical: 4),
+    color: HeroCard.foreground.withValues(alpha: 0.12),
+  );
+}
+
 class _Stat extends StatelessWidget {
-  const _Stat({required this.label, required this.value, required this.color});
+  const _Stat({
+    required this.icon,
+    required this.tint,
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+  final IconData icon;
+  final Color tint;
   final String label;
   final String value;
-  final Color color;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    const on = HeroCard.foreground;
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            label,
-            style: t.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: t.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+          Icon(icon, size: 26, color: tint),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: t.labelSmall?.copyWith(
+                    color: on.withValues(alpha: 0.7),
+                  ),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: t.titleSmall?.copyWith(color: valueColor ?? on),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -204,7 +263,7 @@ class _Stat extends StatelessWidget {
   }
 }
 
-/// Circular "% used" ring on the overview card.
+/// Circular "% used" ring with a gradient arc.
 class _Ring extends StatelessWidget {
   const _Ring({required this.ratio, required this.color});
   final double ratio;
@@ -212,26 +271,29 @@ class _Ring extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
     return TweenAnimationBuilder<double>(
       key: ValueKey(TabVisit.of(context)),
       tween: Tween(begin: 0, end: ratio),
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
       curve: Curves.easeOutCubic,
       builder: (context, v, _) => SizedBox(
-        width: 84,
-        height: 84,
+        width: 104,
+        height: 104,
         child: CustomPaint(
-          painter: _RingPainter(v.clamp(0, 1).toDouble(), color),
+          painter: _RingPainter(
+            v.clamp(0, 1).toDouble(),
+            ratio > 1 ? FinanceColors.expense : accent,
+          ),
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '${(v * 100).round()}%',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: color),
                 ),
                 Text(
                   'used',
@@ -255,22 +317,36 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 9.0;
-    final rect = Offset.zero & size;
-    final r = rect.deflate(stroke / 2);
-    final track = Paint()
-      ..color = color.withValues(alpha: 0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke;
-    final arc = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(r, 0, 2 * math.pi, false, track);
-    if (value > 0) {
-      canvas.drawArc(r, -math.pi / 2, 2 * math.pi * value, false, arc);
-    }
+    const stroke = 11.0;
+    final r = (Offset.zero & size).deflate(stroke / 2);
+    canvas.drawArc(
+      r,
+      0,
+      2 * math.pi,
+      false,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.1)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke,
+    );
+    if (value <= 0) return;
+    final light = Color.lerp(color, Colors.white, 0.45)!;
+    canvas.drawArc(
+      r,
+      -math.pi / 2,
+      2 * math.pi * value,
+      false,
+      Paint()
+        ..shader = SweepGradient(
+          startAngle: -math.pi / 2,
+          endAngle: 3 * math.pi / 2,
+          colors: [light, color, light],
+          transform: const GradientRotation(-math.pi / 2),
+        ).createShader(r)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
   @override
@@ -278,7 +354,67 @@ class _RingPainter extends CustomPainter {
       old.value != value || old.color != color;
 }
 
-/// One category budget: emoji, spent of limit, left/over, progress bar.
+/// "Category Budgets" with a Manage Categories pill.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Row(
+      children: [
+        Icon(AppIcons.gridViewRounded, color: scheme.primary, size: 22),
+        const SizedBox(width: 8),
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Category Budgets',
+              maxLines: 1,
+              style: theme.textTheme.titleMedium?.copyWith(fontSize: 19),
+            ),
+          ),
+        ),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            shape: const StadiumBorder(),
+            side: BorderSide(color: scheme.primary.withValues(alpha: 0.6)),
+            backgroundColor: scheme.primary.withValues(alpha: 0.08),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size(0, 38),
+          ),
+          onPressed: () => Navigator.of(
+            context,
+          ).push(appPageRoute<void>(const CategoriesScreen())),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.settingsOutlined, size: 17, color: scheme.primary),
+              const SizedBox(width: 6),
+              Text(
+                'Manage Categories',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurface,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Icon(
+                AppIcons.chevronRightRounded,
+                size: 15,
+                color: scheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One category budget: icon tile, name, "₹spent of ₹limit", % used,
+/// and a progress bar. Tap to change the limit.
 class _BudgetCard extends StatelessWidget {
   const _BudgetCard({required this.p});
   final BudgetProgress p;
@@ -289,73 +425,67 @@ class _BudgetCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final color = budgetColor(context, p.ratio);
     final name = p.budget.category;
+    final pct = (p.ratio * 100).round();
 
     return AppCard(
       onTap: () => showBudgetSheet(context, category: name),
-      padding: const EdgeInsets.fromLTRB(14, 14, 16, 16),
-      child: Column(
+      radius: 16,
+      padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+      child: Row(
         children: [
-          Row(
-            children: [
-              IconBadge.emoji(p.option?.emoji ?? '💸', color: color),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          CategoryTile(name: name, glyph: p.option?.emoji ?? '💸', size: 56),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            name,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              name,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontSize: 17,
+                              ),
                             ),
                           ),
-                        ),
-                        if (p.isOver || (p.isNear && p.budget.alertAt80))
-                          Padding(
-                            padding: const EdgeInsets.only(left: AppSpace.sm),
-                            child: StatusPill(
-                              p.isOver ? 'Over' : 'Almost there',
-                              color: color,
+                          if (p.isOver || (p.isNear && p.budget.alertAt80))
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: StatusPill(
+                                p.isOver ? 'Over' : 'Almost there',
+                                color: color,
+                              ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 2),
                     Text(
-                      '${Money.format(p.spentPaise)} of ${Money.format(p.budget.limitPaise)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                      '$pct%',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: p.isOver ? color : scheme.onSurface,
                       ),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    Money.format(p.leftPaise.abs()),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: p.isOver ? color : scheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  '${Money.format(p.spentPaise)} of ${Money.format(p.budget.limitPaise)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
-                  Text(
-                    p.isOver ? 'over' : 'left',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 10),
+                BudgetProgressBar(ratio: p.ratio, color: color, height: 8),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          BudgetProgressBar(ratio: p.ratio, color: color),
+          const SizedBox(width: 6),
+          Icon(AppIcons.chevronRightRounded, color: scheme.onSurfaceVariant),
         ],
       ),
     );
@@ -369,14 +499,10 @@ class _UnbudgetedTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final emoji = ref.watch(categorySetProvider).emojiFor(name) ?? '💸';
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: CircleAvatar(
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        child: CategoryGlyph(emoji, size: 20),
-      ),
+      leading: CategoryTile(name: name, glyph: emoji, size: 44),
       title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text('${Money.format(paise)} this month'),
       trailing: FilledButton.tonal(
@@ -425,7 +551,11 @@ class _Empty extends ConsumerWidget {
             children: [
               for (final name in picks)
                 ActionChip(
-                  avatar: CategoryGlyph(cats.emojiFor(name) ?? '💸', size: 18),
+                  avatar: CategoryTile(
+                    name: name,
+                    glyph: cats.emojiFor(name) ?? '💸',
+                    size: 24,
+                  ),
                   label: Text(name),
                   onPressed: () => showBudgetSheet(context, category: name),
                 ),
@@ -443,19 +573,4 @@ class _Empty extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Opens the Categories page: add, rename, re-emoji, reorder.
-class _ManageCategories extends StatelessWidget {
-  const _ManageCategories();
-
-  @override
-  Widget build(BuildContext context) => OutlinedButton.icon(
-    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(46)),
-    onPressed: () => Navigator.of(
-      context,
-    ).push(appPageRoute<void>(const CategoriesScreen())),
-    icon: const Icon(AppIcons.gridViewRounded, size: 20),
-    label: const Text('Manage categories'),
-  );
 }

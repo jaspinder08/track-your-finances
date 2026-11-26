@@ -157,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('New budget'), findsNothing);
-    expect(find.text('Category budgets'), findsOneWidget);
+    expect(find.text('Category Budgets'), findsOneWidget);
     expect(find.text('₹4,500 of ₹5,000'), findsOneWidget);
     expect(find.text('Almost there'), findsOneWidget); // 90% used
     expect(find.text('₹500'), findsWidgets); // left
