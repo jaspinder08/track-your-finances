@@ -12,6 +12,7 @@ import '../../categories/screens/categories_screen.dart';
 import '../data/budget_repository.dart';
 import '../widgets/budget_progress_bar.dart';
 import '../widgets/budget_sheet.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Budgets tab.
 class BudgetsScreen extends StatelessWidget {
@@ -149,7 +150,7 @@ class _Overview extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.info_outline_rounded, size: 16, color: on),
+                  Icon(AppIcons.infoOutlineRounded, size: 16, color: on),
                   const SizedBox(width: 8),
                   Text(
                     [
@@ -435,7 +436,7 @@ class _Empty extends ConsumerWidget {
             onPressed: () => Navigator.of(
               context,
             ).push(appPageRoute<void>(const CategoriesScreen())),
-            icon: const Icon(Icons.grid_view_rounded, size: 18),
+            icon: const Icon(AppIcons.gridViewRounded, size: 18),
             label: const Text('Manage categories'),
           ),
         ],
@@ -454,7 +455,7 @@ class _ManageCategories extends StatelessWidget {
     onPressed: () => Navigator.of(
       context,
     ).push(appPageRoute<void>(const CategoriesScreen())),
-    icon: const Icon(Icons.grid_view_rounded, size: 20),
+    icon: const Icon(AppIcons.gridViewRounded, size: 20),
     label: const Text('Manage categories'),
   );
 }

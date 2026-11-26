@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/design.dart';
 import '../data/account.dart';
+import '../../../core/design/app_icons.dart';
 
 /// First open: brand + what TYF does, then "What should we call you?".
 class WelcomeScreen extends ConsumerStatefulWidget {
@@ -109,17 +110,17 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           ),
           const Spacer(),
           feature(
-            Icons.calendar_month_rounded,
+            AppIcons.calendarMonthRounded,
             'Every rupee on a calendar',
             'Add an expense in seconds and see your month at a glance.',
           ),
           feature(
-            Icons.pie_chart_rounded,
+            AppIcons.pieChartRounded,
             'Budgets and goals',
             'Set limits per category and save towards what matters.',
           ),
           feature(
-            Icons.cloud_off_rounded,
+            AppIcons.cloudOffRounded,
             'Works offline',
             'Your data lives on your phone. Sign in later to back it up.',
           ),
@@ -167,7 +168,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               child: IconButton(
                 tooltip: 'Back',
                 onPressed: () => setState(() => _askName = false),
-                icon: const Icon(Icons.arrow_back_rounded),
+                icon: const Icon(AppIcons.arrowBackRounded),
               ),
             ),
             const SizedBox(height: AppSpace.xxl),
@@ -199,7 +200,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                     onFieldSubmitted: (_) => _finish(),
                     decoration: const InputDecoration(
                       labelText: 'Your name',
-                      prefixIcon: Icon(Icons.person_outline_rounded),
+                      prefixIcon: Icon(AppIcons.personOutlineRounded),
                       counterText: '',
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)

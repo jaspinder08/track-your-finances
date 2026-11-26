@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../core/design/app_icons.dart';
 
 class Test extends StatelessWidget {
   const Test({super.key});
@@ -84,7 +85,7 @@ class _EmployeeSearchScreenState extends State<EmployeeSearchScreen> {
           onChanged: onSearchChanged,
           decoration: const InputDecoration(
             hintText: 'Search employees',
-            prefixIcon: Icon(Icons.search),
+            prefixIcon: Icon(AppIcons.search),
             border: OutlineInputBorder(),
           ),
         ),

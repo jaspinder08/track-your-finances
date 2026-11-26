@@ -12,6 +12,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../data/account.dart';
 import 'sign_in_screen.dart';
 import 'sign_out_flow.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Who you are in TYF: name, account and backup, a few numbers.
 class ProfileScreen extends ConsumerWidget {
@@ -83,7 +84,7 @@ class ProfileScreen extends ConsumerWidget {
                     tooltip: 'Edit name',
                     color: HeroCard.foreground,
                     onPressed: () => _editName(context, ref, account.name),
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: const Icon(AppIcons.editOutlined),
                   ),
                 ],
               ),
@@ -140,7 +141,7 @@ class ProfileScreen extends ConsumerWidget {
                               const SignInScreen(mode: SignInMode.voluntary),
                             ),
                           ),
-                          icon: const Icon(Icons.cloud_upload_outlined),
+                          icon: const Icon(AppIcons.cloudUploadOutlined),
                           label: const Text('Sign in to back up'),
                         ),
                       ],
@@ -149,8 +150,8 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         IconBadge.icon(
                           sync.error != null
-                              ? Icons.cloud_off_outlined
-                              : Icons.cloud_done_outlined,
+                              ? AppIcons.cloudOffOutlined
+                              : AppIcons.cloudDoneOutlined,
                           color: sync.error != null ? scheme.error : null,
                         ),
                         const SizedBox(width: 12),
@@ -194,7 +195,7 @@ class ProfileScreen extends ConsumerWidget {
                 side: BorderSide(color: scheme.error.withValues(alpha: 0.5)),
               ),
               onPressed: () => confirmSignOut(context, ref),
-              icon: const Icon(Icons.logout_rounded),
+              icon: const Icon(AppIcons.logoutRounded),
               label: const Text('Sign out'),
             ),
           ],

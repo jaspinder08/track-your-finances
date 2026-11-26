@@ -9,6 +9,7 @@ import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
 import '../widgets/category_editor_sheet.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Which list (expense or income) the Categories page shows.
 final categoryKindViewProvider =
@@ -76,12 +77,12 @@ class CategoriesView extends ConsumerWidget {
               segments: const [
                 ButtonSegment(
                   value: CategoryKind.expense,
-                  icon: Icon(Icons.north_east_rounded),
+                  icon: Icon(AppIcons.northEastRounded),
                   label: Text('Expense'),
                 ),
                 ButtonSegment(
                   value: CategoryKind.income,
-                  icon: Icon(Icons.south_west_rounded),
+                  icon: Icon(AppIcons.southWestRounded),
                   label: Text('Income'),
                 ),
               ],
@@ -272,7 +273,7 @@ class _CategoryCardState extends State<_CategoryCard> {
                 turns: _open ? 0.5 : 0,
                 duration: const Duration(milliseconds: 200),
                 child: Icon(
-                  Icons.expand_more_rounded,
+                  AppIcons.expandMoreRounded,
                   color: scheme.onSurfaceVariant,
                 ),
               ),
@@ -323,7 +324,7 @@ class _CategoryCardState extends State<_CategoryCard> {
                               visualDensity: VisualDensity.compact,
                             ),
                             onPressed: widget.onEdit,
-                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            icon: const Icon(AppIcons.editOutlined, size: 18),
                             label: Text('Edit ${c.name}'),
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../design/tokens.dart';
+import '../design/app_icons.dart';
 
 /// Friendly placeholder for a screen with nothing in it yet.
 ///
@@ -15,7 +16,7 @@ class EmptyState extends StatelessWidget {
     required this.title,
     required this.message,
     this.actionLabel,
-    this.actionIcon = Icons.add_rounded,
+    this.actionIcon = AppIcons.addRounded,
     this.onAction,
     this.footer,
     this.bottomInset = 96,

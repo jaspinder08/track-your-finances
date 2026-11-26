@@ -34,6 +34,21 @@ Future<void> _loadFonts() async {
       ),
     );
   await icons.load();
+  // Phosphor icon fonts, from the package in the pub cache.
+  final pub = Platform.environment['PUB_CACHE'] ??
+      '${Platform.environment['HOME']}/.pub-cache';
+  final ph = '$pub/hosted/pub.dev/phosphor_flutter-2.1.0/lib/fonts';
+  for (final (family, file) in [
+    ('PhosphorRegular', 'Phosphor.ttf'),
+    ('PhosphorBold', 'Phosphor-Bold.ttf'),
+    ('PhosphorFill', 'Phosphor-Fill.ttf'),
+  ]) {
+    final f = File('$ph/$file');
+    if (!f.existsSync()) continue;
+    await (FontLoader('packages/phosphor_flutter/$family')
+          ..addFont(Future.value(ByteData.sublistView(f.readAsBytesSync()))))
+        .load();
+  }
 }
 
 Future<void> _seed(InMemoryEntryRepository r, InMemoryBudgetRepository b) async {
@@ -130,7 +145,7 @@ void main() {
     }
 
     await shot('01_calendar');
-    await tester.tap(find.text('${DateTime.now().day}').first);
+    await tester.tap(find.text('−₹75').first); // today's cell
     await shot('02_day_sheet');
     await tester.tapAt(const Offset(200, 100));
     await tester.pumpAndSettle();

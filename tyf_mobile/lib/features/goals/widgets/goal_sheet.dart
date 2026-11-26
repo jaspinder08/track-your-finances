@@ -8,6 +8,7 @@ import '../../transactions/data/entry_repository.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import 'goal_ring.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Goal details: big ring, plan, and Add savings / Withdraw / Edit.
 Future<void> showGoalSheet(BuildContext context, String goalId) =>
@@ -56,13 +57,13 @@ class GoalSheet extends ConsumerWidget {
                 ),
                 IconButton(
                   tooltip: 'Edit goal',
-                  icon: const Icon(Icons.edit_outlined),
+                  icon: const Icon(AppIcons.editOutlined),
                   onPressed: () =>
                       showAddTransactionScreen(context, editing: goal.entry),
                 ),
                 IconButton(
                   tooltip: 'Delete goal',
-                  icon: Icon(Icons.delete_outline, color: scheme.error),
+                  icon: Icon(AppIcons.deleteOutline, color: scheme.error),
                   onPressed: () => _delete(context, ref, goal),
                 ),
               ],
@@ -116,8 +117,8 @@ class GoalSheet extends ConsumerWidget {
                 children: [
                   Icon(
                     goal.isOverdue
-                        ? Icons.schedule_rounded
-                        : Icons.event_available_rounded,
+                        ? AppIcons.scheduleRounded
+                        : AppIcons.eventAvailableRounded,
                     color: goal.isOverdue ? scheme.error : scheme.primary,
                   ),
                   const SizedBox(width: 12),
@@ -145,7 +146,7 @@ class GoalSheet extends ConsumerWidget {
                     onPressed: goal.savedPaise > 0
                         ? () => _contribute(context, ref, goal, withdraw: true)
                         : null,
-                    icon: const Icon(Icons.remove_rounded),
+                    icon: const Icon(AppIcons.removeRounded),
                     label: const Text('Withdraw'),
                   ),
                 ),
@@ -157,7 +158,7 @@ class GoalSheet extends ConsumerWidget {
                       minimumSize: const Size(0, 52),
                     ),
                     onPressed: () => _contribute(context, ref, goal),
-                    icon: const Icon(Icons.add_rounded),
+                    icon: const Icon(AppIcons.addRounded),
                     label: const Text('Add savings'),
                   ),
                 ),

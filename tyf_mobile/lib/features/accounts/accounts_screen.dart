@@ -11,6 +11,7 @@ import '../transactions/data/entry_repository.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/screens/add_transaction_screen.dart';
 import 'account_balances.dart';
+import '../../core/design/app_icons.dart';
 
 /// Where your money is: each account's balance and the total.
 class AccountsScreen extends ConsumerWidget {
@@ -70,7 +71,7 @@ class AccountsScreen extends ConsumerWidget {
                       context,
                       initialType: EntryType.transfer,
                     ),
-                    icon: const Icon(Icons.swap_horiz_rounded),
+                    icon: const Icon(AppIcons.swapHorizRounded),
                     label: const Text('Move money'),
                   ),
                 ],
@@ -125,7 +126,7 @@ class _AccountTile extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
       child: Row(
         children: [
-          IconBadge.icon(accountIcons[name] ?? Icons.account_balance_outlined),
+          IconBadge.icon(accountIcons[name] ?? AppIcons.accountBalanceOutlined),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -143,7 +144,7 @@ class _AccountTile extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 4),
-          Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+          Icon(AppIcons.chevronRightRounded, color: scheme.onSurfaceVariant),
         ],
       ),
     );
@@ -158,12 +159,12 @@ class _AccountTile extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.receipt_long_outlined),
+              leading: const Icon(AppIcons.receiptLongOutlined),
               title: const Text('See transactions'),
               onTap: () => Navigator.pop(c, 'see'),
             ),
             ListTile(
-              leading: const Icon(Icons.edit_outlined),
+              leading: const Icon(AppIcons.editOutlined),
               title: const Text('Set current balance'),
               subtitle: const Text('Match what your bank or wallet shows'),
               onTap: () => Navigator.pop(c, 'set'),

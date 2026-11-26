@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../core/design/app_icons.dart';
 
 /// The four things the + button can add.
 enum EntryType {
-  expense('Expense', Icons.north_east_rounded),
-  income('Income', Icons.south_west_rounded),
-  transfer('Transfer', Icons.swap_horiz_rounded),
-  goal('Goal', Icons.flag_rounded);
+  expense('Expense', AppIcons.northEastRounded),
+  income('Income', AppIcons.southWestRounded),
+  transfer('Transfer', AppIcons.swapHorizRounded),
+  goal('Goal', AppIcons.flagRounded);
 
   const EntryType(this.label, this.icon);
   final String label;
@@ -175,18 +176,18 @@ const accounts = [
 ];
 
 const paymentMethodIcons = <String, IconData>{
-  'UPI': Icons.qr_code_2_rounded,
-  'Cash': Icons.payments_outlined,
-  'Debit card': Icons.credit_card_rounded,
-  'Credit card': Icons.credit_score_rounded,
-  'Net banking': Icons.account_balance_outlined,
-  'Wallet': Icons.account_balance_wallet_outlined,
+  'UPI': AppIcons.qrCode2Rounded,
+  'Cash': AppIcons.paymentsOutlined,
+  'Debit card': AppIcons.creditCardRounded,
+  'Credit card': AppIcons.creditScoreRounded,
+  'Net banking': AppIcons.accountBalanceOutlined,
+  'Wallet': AppIcons.accountBalanceWalletOutlined,
 };
 
 const accountIcons = <String, IconData>{
-  'Cash': Icons.payments_outlined,
-  'Bank account': Icons.account_balance_outlined,
-  'Savings account': Icons.savings_outlined,
-  'Credit card': Icons.credit_card_rounded,
-  'Wallet': Icons.account_balance_wallet_outlined,
+  'Cash': AppIcons.paymentsOutlined,
+  'Bank account': AppIcons.accountBalanceOutlined,
+  'Savings account': AppIcons.savingsOutlined,
+  'Credit card': AppIcons.creditCardRounded,
+  'Wallet': AppIcons.accountBalanceWalletOutlined,
 };

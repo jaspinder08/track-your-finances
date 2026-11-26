@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../app/theme/theme_controller.dart';
 import '../../../core/design/design.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Settings: appearance (accent colour; TYF is always dark) and general
 /// options.
@@ -113,7 +114,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                           child: accent == settings.accent
                               ? const Icon(
-                                  Icons.check_rounded,
+                                  AppIcons.checkRounded,
                                   color: Colors.white,
                                 )
                               : null,
@@ -127,7 +128,7 @@ class SettingsScreen extends ConsumerWidget {
           sectionLabel('General'),
           const Card(
             child: ListTile(
-              leading: Icon(Icons.currency_rupee_rounded),
+              leading: Icon(AppIcons.currencyRupeeRounded),
               title: Text('Currency'),
               subtitle: Text('Indian Rupee (₹ INR)'),
             ),

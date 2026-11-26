@@ -21,6 +21,7 @@ import '../../features/transactions/screens/add_transaction_screen.dart';
 import 'app_drawer.dart';
 import 'floating_nav_bar.dart';
 import 'top_bar.dart';
+import '../../core/design/app_icons.dart';
 
 /// The main frame of the app: top bar, the current tab, floating nav bar.
 /// Tabs live in an IndexedStack so each keeps its scroll position.
@@ -64,14 +65,18 @@ class _AppShellState extends ConsumerState<AppShell>
   }
 
   static const _items = [
-    NavItem(Icons.calendar_month_outlined, Icons.calendar_month, 'Calendar'),
+    NavItem(AppIcons.calendarMonthOutlined, AppIcons.calendarMonth, 'Calendar'),
     NavItem(
-      Icons.pie_chart_outline_rounded,
-      Icons.pie_chart_rounded,
+      AppIcons.pieChartOutlineRounded,
+      AppIcons.pieChartRounded,
       'Budgets',
     ),
-    NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded, 'History'),
-    NavItem(Icons.insights_outlined, Icons.insights_rounded, 'Reports'),
+    NavItem(
+      AppIcons.receiptLongOutlined,
+      AppIcons.receiptLongRounded,
+      'History',
+    ),
+    NavItem(AppIcons.insightsOutlined, AppIcons.insightsRounded, 'Reports'),
   ];
 
   static const _pages = [

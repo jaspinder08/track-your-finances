@@ -11,6 +11,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/month_report.dart';
 import '../widgets/charts.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Reports tab: month summary, spending by category, 6-month trend,
 /// biggest expenses and how you paid.
@@ -60,7 +61,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           switcher,
           Expanded(
             child: EmptyState(
-              icon: Icons.insights_rounded,
+              icon: AppIcons.insightsRounded,
               title: 'Nothing in ${DateFormat.MMMM().format(_month)}',
               message:
                   'Add income and expenses and you\'ll see where your money goes.',
@@ -156,7 +157,7 @@ class _MonthSwitcher extends StatelessWidget {
     children: [
       IconButton(
         onPressed: onPrev,
-        icon: const Icon(Icons.chevron_left),
+        icon: const Icon(AppIcons.chevronLeft),
         tooltip: 'Previous month',
       ),
       Expanded(
@@ -168,7 +169,7 @@ class _MonthSwitcher extends StatelessWidget {
       ),
       IconButton(
         onPressed: onNext,
-        icon: const Icon(Icons.chevron_right),
+        icon: const Icon(AppIcons.chevronRight),
         tooltip: 'Next month',
       ),
     ],
@@ -224,19 +225,19 @@ class _Summary extends StatelessWidget {
           Row(
             children: [
               _Figure(
-                icon: Icons.south_west_rounded,
+                icon: AppIcons.southWestRounded,
                 label: 'Income',
                 value: Money.format(report.income),
                 color: on,
               ),
               _Figure(
-                icon: Icons.north_east_rounded,
+                icon: AppIcons.northEastRounded,
                 label: 'Spent',
                 value: Money.format(report.expense),
                 color: on,
               ),
               _Figure(
-                icon: Icons.today_rounded,
+                icon: AppIcons.todayRounded,
                 label: 'Per day',
                 value: Money.format(report.perDay),
                 color: on,
@@ -249,8 +250,8 @@ class _Summary extends StatelessWidget {
               children: [
                 Icon(
                   vs > 0
-                      ? Icons.trending_up_rounded
-                      : Icons.trending_down_rounded,
+                      ? AppIcons.trendingUpRounded
+                      : AppIcons.trendingDownRounded,
                   size: 18,
                   color: on,
                 ),
@@ -575,7 +576,7 @@ class _CategoryRow extends ConsumerWidget {
             IconButton(
               tooltip: 'See ${slice.name} entries',
               visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.chevron_right_rounded),
+              icon: const Icon(AppIcons.chevronRightRounded),
               onPressed: () => _showEntries(context, ref),
             ),
           ],
@@ -666,7 +667,7 @@ class _MethodRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            paymentMethodIcons[slice.name] ?? Icons.payments_outlined,
+            paymentMethodIcons[slice.name] ?? AppIcons.paymentsOutlined,
             size: 20,
             color: scheme.primary,
           ),

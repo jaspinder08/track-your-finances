@@ -10,6 +10,7 @@ import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import '../widgets/goal_ring.dart';
 import '../widgets/goal_sheet.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Goals half of the Budgets tab: overall progress, then one card per goal.
 class GoalsView extends ConsumerWidget {
@@ -153,7 +154,7 @@ class _GoalCard extends StatelessWidget {
             size: 56,
             stroke: 6,
             child: goal.isDone
-                ? Icon(Icons.check_rounded, color: color)
+                ? Icon(AppIcons.checkRounded, color: color)
                 : Text(
                     '${(goal.ratio * 100).floor()}%',
                     style: theme.textTheme.labelMedium?.copyWith(
@@ -228,7 +229,7 @@ class _Empty extends StatelessWidget {
     message:
         'Saving for a laptop, a trip or an emergency fund? Set a target and TYF shows how much to put aside each month.',
     actionLabel: 'Create a goal',
-    actionIcon: Icons.flag_rounded,
+    actionIcon: AppIcons.flagRounded,
     // A full page (no nav bar), so centre in the whole space.
     bottomInset: AppSpace.xxxl,
     onAction: () =>

@@ -14,6 +14,7 @@ import '../../features/help/how_to_screen.dart';
 import '../../features/categories/screens/categories_screen.dart';
 import '../../features/goals/screens/goals_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../core/design/app_icons.dart';
 
 /// Side menu: greeting, account card, and secondary pages.
 class AppDrawer extends ConsumerWidget {
@@ -70,8 +71,8 @@ class AppDrawer extends ConsumerWidget {
                     children: [
                       IconBadge.icon(
                         account.isGuest
-                            ? Icons.person_outline_rounded
-                            : Icons.verified_user_outlined,
+                            ? AppIcons.personOutlineRounded
+                            : AppIcons.verifiedUserOutlined,
                         size: 40,
                       ),
                       const SizedBox(width: AppSpace.md),
@@ -120,7 +121,7 @@ class AppDrawer extends ConsumerWidget {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Icon(Icons.cloud_sync_outlined),
+                              : const Icon(AppIcons.cloudSyncOutlined),
                         ),
                     ],
                   ),
@@ -135,45 +136,45 @@ class AppDrawer extends ConsumerWidget {
                     ),
                     onPressed: () =>
                         open(const SignInScreen(mode: SignInMode.voluntary)),
-                    icon: const Icon(Icons.cloud_upload_outlined, size: 20),
+                    icon: const Icon(AppIcons.cloudUploadOutlined, size: 20),
                     label: const Text('Sign in to back up'),
                   ),
                 ),
               const Divider(),
               const SizedBox(height: 8),
               item(
-                Icons.account_balance_wallet_outlined,
+                AppIcons.accountBalanceWalletOutlined,
                 'Accounts',
                 () => open(const AccountsScreen()),
               ),
               item(
-                Icons.grid_view_rounded,
+                AppIcons.gridViewRounded,
                 'Categories',
                 () => open(const CategoriesScreen()),
               ),
               item(
-                Icons.flag_outlined,
+                AppIcons.flagOutlined,
                 'Goals',
                 () => open(const GoalsScreen()),
               ),
               item(
-                Icons.person_outline_rounded,
+                AppIcons.personOutlineRounded,
                 'Profile',
                 () => open(const ProfileScreen()),
               ),
               item(
-                Icons.settings_outlined,
+                AppIcons.settingsOutlined,
                 'Settings',
                 () => open(const SettingsScreen()),
               ),
               item(
-                Icons.school_outlined,
+                AppIcons.schoolOutlined,
                 'How to use TYF',
                 () => open(const HowToScreen()),
               ),
               if (!account.isGuest)
                 item(
-                  Icons.logout_rounded,
+                  AppIcons.logoutRounded,
                   'Sign out',
                   () => confirmSignOut(context, ref),
                 ),

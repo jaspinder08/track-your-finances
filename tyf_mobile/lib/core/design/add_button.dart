@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'tokens.dart';
+import 'app_icons.dart';
 
 /// Compact "+ New" pill used in headers. Same accent fill and onPrimary
 /// text as the app's main + button and Save buttons, so every "add"
@@ -27,7 +28,7 @@ class AddButton extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: onPressed,
-      icon: const Icon(Icons.add_rounded, size: 18),
+      icon: const Icon(AppIcons.addRounded, size: 18),
       label: Text(label),
     );
     return tooltip == null ? button : Tooltip(message: tooltip, child: button);

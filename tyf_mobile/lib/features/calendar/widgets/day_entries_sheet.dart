@@ -9,6 +9,7 @@ import '../../categories/data/category_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../../transactions/widgets/swipe_entry.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Lists one day's entries. Tap to edit; swipe left to delete (with
 /// Undo), right to duplicate to today.
@@ -59,7 +60,7 @@ class DayEntriesSheet extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                   onPressed: () => Navigator.pop(context, true),
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: const Icon(AppIcons.add, size: 18),
                   label: const Text('Add'),
                 ),
               ],

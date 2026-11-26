@@ -6,6 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../core/utils/money.dart';
 import '../data/entry.dart';
 import '../data/entry_repository.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Wraps an entry row with swipe actions:
 /// swipe left → delete (with Undo), swipe right → duplicate to today.
@@ -41,13 +42,13 @@ class SwipeEntry extends ConsumerWidget {
       background: bg(
         Alignment.centerLeft,
         scheme.primary,
-        Icons.copy_rounded,
+        AppIcons.copyRounded,
         'Duplicate',
       ),
       secondaryBackground: bg(
         Alignment.centerRight,
         FinanceColors.expense,
-        Icons.delete_outline_rounded,
+        AppIcons.deleteOutlineRounded,
         'Delete',
       ),
       confirmDismiss: (dir) async {

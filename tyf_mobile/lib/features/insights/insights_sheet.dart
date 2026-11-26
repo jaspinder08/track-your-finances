@@ -12,6 +12,7 @@ import '../reports/data/month_report.dart';
 import '../transactions/data/entry.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/data/entry_repository.dart';
+import '../../core/design/app_icons.dart';
 
 /// One plain-language fact about this month.
 class Insight {
@@ -263,7 +264,7 @@ class InsightsSheet extends ConsumerWidget {
                   Navigator.pop(context);
                   onOpenReports();
                 },
-                icon: const Icon(Icons.insights_rounded),
+                icon: const Icon(AppIcons.insightsRounded),
                 label: const Text('See full reports'),
               ),
             ),

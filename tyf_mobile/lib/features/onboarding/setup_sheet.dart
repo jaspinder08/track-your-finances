@@ -9,6 +9,7 @@ import '../categories/data/category_repository.dart';
 import '../categories/widgets/category_editor_sheet.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/screens/add_transaction_screen.dart';
+import '../../core/design/app_icons.dart';
 
 /// Set to true right after a sign-in; the app shell shows [SetupSheet]
 /// once and resets it.
@@ -128,7 +129,7 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
                   Padding(
                     padding: const EdgeInsets.only(right: AppSpace.sm),
                     child: ActionChip(
-                      avatar: const Icon(Icons.add_rounded, size: 18),
+                      avatar: const Icon(AppIcons.addRounded, size: 18),
                       label: const Text('New'),
                       onPressed: _newCategory,
                     ),
@@ -169,8 +170,8 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
                           showBudgetSheet(context, category: picked.name),
                       icon: Icon(
                         budget == null
-                            ? Icons.savings_outlined
-                            : Icons.edit_outlined,
+                            ? AppIcons.savingsOutlined
+                            : AppIcons.editOutlined,
                         size: 18,
                       ),
                       label: Text(
@@ -190,9 +191,9 @@ class _SetupSheetState extends ConsumerState<SetupSheet> {
             child: Row(
               children: [
                 for (final (type, icon) in const [
-                  (EntryType.expense, Icons.arrow_upward_rounded),
-                  (EntryType.income, Icons.arrow_downward_rounded),
-                  (EntryType.transfer, Icons.swap_horiz_rounded),
+                  (EntryType.expense, AppIcons.arrowUpwardRounded),
+                  (EntryType.income, AppIcons.arrowDownwardRounded),
+                  (EntryType.transfer, AppIcons.swapHorizRounded),
                 ]) ...[
                   Expanded(
                     child: OutlinedButton.icon(
@@ -262,7 +263,7 @@ class _Step extends StatelessWidget {
                       ? scheme.onPrimary
                       : scheme.onSurfaceVariant,
                   child: done
-                      ? const Icon(Icons.check_rounded, size: 16)
+                      ? const Icon(AppIcons.checkRounded, size: 16)
                       : Text(
                           '$number',
                           style: theme.textTheme.labelMedium?.copyWith(

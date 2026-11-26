@@ -12,6 +12,7 @@ import '../transactions/data/entry.dart';
 import '../transactions/data/entry_repository.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/widgets/swipe_entry.dart';
+import '../../core/design/app_icons.dart';
 
 /// What the History list is narrowed to.
 @immutable
@@ -129,7 +130,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 leading: Text(o.emoji, style: const TextStyle(fontSize: 22)),
                 title: Text(o.name),
                 trailing: o.name == _filter.category
-                    ? const Icon(Icons.check_rounded)
+                    ? const Icon(AppIcons.checkRounded)
                     : null,
                 onTap: () => Navigator.pop(c, o.name),
               ),
@@ -182,12 +183,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Search name, category, amount…',
-              prefixIcon: const Icon(Icons.search_rounded),
+              prefixIcon: const Icon(AppIcons.searchRounded),
               suffixIcon: _filter.query.isEmpty
                   ? null
                   : IconButton(
                       tooltip: 'Clear search',
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(AppIcons.close),
                       onPressed: () {
                         _search.clear();
                         _set(query: '');
@@ -208,7 +209,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   child: InputChip(
                     avatar: Icon(
                       accountIcons[_filter.account] ??
-                          Icons.account_balance_outlined,
+                          AppIcons.accountBalanceOutlined,
                       size: 18,
                     ),
                     label: Text(_filter.account!),
@@ -228,7 +229,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               typeChip('Transfers', EntryType.transfer),
               if (_filter.type != EntryType.transfer)
                 InputChip(
-                  avatar: const Icon(Icons.grid_view_rounded, size: 18),
+                  avatar: const Icon(AppIcons.gridViewRounded, size: 18),
                   label: Text(_filter.category ?? 'Category'),
                   selected: _filter.category != null,
                   onPressed: _pickCategory,

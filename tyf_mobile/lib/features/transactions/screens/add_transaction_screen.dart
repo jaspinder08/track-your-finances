@@ -13,6 +13,7 @@ import '../../categories/data/category_repository.dart';
 import '../data/entry.dart';
 import '../data/entry_repository.dart';
 import '../data/transaction_options.dart';
+import '../../../core/design/app_icons.dart';
 
 export '../data/entry.dart';
 
@@ -300,7 +301,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     IconButton(
                       tooltip: 'Back',
                       onPressed: () => Navigator.maybePop(context),
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: const Icon(AppIcons.arrowBackRounded),
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -408,7 +409,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                                 ),
                               ),
                               onPressed: _saving ? null : _save,
-                              icon: const Icon(Icons.check_rounded, size: 20),
+                              icon: const Icon(AppIcons.checkRounded, size: 20),
                               label: const Text('Save'),
                             ),
                           ],
@@ -485,7 +486,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       ),
                       const SizedBox(width: 6),
                       Icon(
-                        Icons.event_rounded,
+                        AppIcons.eventRounded,
                         size: 18,
                         color: scheme.primary,
                       ),
@@ -625,7 +626,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              const Icon(Icons.arrow_drop_down_rounded),
+                              const Icon(AppIcons.arrowDropDownRounded),
                             ],
                           ),
                         ],
@@ -714,7 +715,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Subcategory (optional)',
-                  prefixIcon: Icon(Icons.subdirectory_arrow_right_rounded),
+                  prefixIcon: Icon(AppIcons.subdirectoryArrowRightRounded),
                 ),
                 items: [
                   const DropdownMenuItem<String?>(
@@ -746,7 +747,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 labelText: 'Already saved (optional)',
-                prefixIcon: Icon(Icons.savings_outlined),
+                prefixIcon: Icon(AppIcons.savingsOutlined),
                 prefixText: '₹ ',
               ),
               validator: (v) {
@@ -780,7 +781,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               child: IconButton.filledTonal(
                 tooltip: 'More options',
                 onPressed: () => setState(() => _showMore = true),
-                icon: const Icon(Icons.more_horiz_rounded),
+                icon: const Icon(AppIcons.moreHorizRounded),
               ),
             )
           : AppCard(
@@ -791,7 +792,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   Row(
                     children: [
                       Icon(
-                        Icons.sticky_note_2_outlined,
+                        AppIcons.stickyNote2Outlined,
                         size: 20,
                         color: scheme.onSurfaceVariant,
                       ),
@@ -906,7 +907,7 @@ class _TypeChips extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          t == selected ? Icons.check_rounded : t.icon,
+                          t == selected ? AppIcons.checkRounded : t.icon,
                           size: 16,
                           color: t == selected
                               ? scheme.onPrimary
@@ -1077,7 +1078,7 @@ class _CategoryField extends FormField<CategoryOption> {
                                duration: const Duration(milliseconds: 200),
                                child: selected == null
                                    ? Icon(
-                                       Icons.grid_view_rounded,
+                                       AppIcons.gridViewRounded,
                                        color: scheme.onSurfaceVariant,
                                      )
                                    : Container(
@@ -1124,8 +1125,8 @@ class _CategoryField extends FormField<CategoryOption> {
                              ),
                              Icon(
                                selected == null
-                                   ? Icons.add_rounded
-                                   : Icons.edit_outlined,
+                                   ? AppIcons.addRounded
+                                   : AppIcons.editOutlined,
                                color: selected == null
                                    ? scheme.onSurface
                                    : scheme.onSurfaceVariant,
@@ -1205,7 +1206,7 @@ class _RepeatRow extends StatelessWidget {
               const SizedBox(width: 8),
               IconButton.outlined(
                 onPressed: every > 1 ? () => onEvery(every - 1) : null,
-                icon: const Icon(Icons.remove),
+                icon: const Icon(AppIcons.remove),
                 tooltip: 'Fewer',
               ),
               SizedBox(
@@ -1218,7 +1219,7 @@ class _RepeatRow extends StatelessWidget {
               ),
               IconButton.outlined(
                 onPressed: every < 99 ? () => onEvery(every + 1) : null,
-                icon: const Icon(Icons.add),
+                icon: const Icon(AppIcons.add),
                 tooltip: 'More',
               ),
               const SizedBox(width: 8),
@@ -1513,7 +1514,7 @@ class _TransferCard extends FormField<void> {
                            IconButton.filledTonal(
                              onPressed: onSwap,
                              tooltip: 'Swap',
-                             icon: const Icon(Icons.swap_vert_rounded),
+                             icon: const Icon(AppIcons.swapVertRounded),
                            ),
                            const Expanded(child: Divider()),
                          ],

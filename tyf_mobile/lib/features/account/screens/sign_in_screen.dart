@@ -6,6 +6,7 @@ import '../../transactions/data/entry_repository.dart';
 import '../data/account.dart';
 import '../data/csv_export.dart';
 import '../../onboarding/setup_sheet.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Why the sign-in screen is showing.
 enum SignInMode {
@@ -176,7 +177,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           if (widget.mode != SignInMode.voluntary) ...[
             const SizedBox(height: AppSpace.xxl),
             IconBadge.icon(
-              locked ? Icons.lock_clock_rounded : Icons.cloud_done_rounded,
+              locked ? AppIcons.lockClockRounded : AppIcons.cloudDoneRounded,
               size: 64,
             ),
             const SizedBox(height: AppSpace.xl),
@@ -243,7 +244,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             onFieldSubmitted: (_) => _continue(),
             decoration: InputDecoration(
               labelText: 'Email',
-              prefixIcon: const Icon(Icons.mail_outline_rounded),
+              prefixIcon: const Icon(AppIcons.mailOutlineRounded),
               suffixIcon: _step == _Step.email
                   ? null
                   : TextButton(
@@ -276,7 +277,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         labelText: 'Password',
                         helperText:
                             'New here? Choose one, at least 8 characters',
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        prefixIcon: const Icon(AppIcons.lockOutlineRounded),
                         suffixIcon: IconButton(
                           tooltip: _showPassword
                               ? 'Hide password'
@@ -285,8 +286,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               setState(() => _showPassword = !_showPassword),
                           icon: Icon(
                             _showPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
+                                ? AppIcons.visibilityOffOutlined
+                                : AppIcons.visibilityOutlined,
                           ),
                         ),
                       ),
@@ -314,8 +315,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 children: [
                   Icon(
                     _error != null
-                        ? Icons.info_outline_rounded
-                        : Icons.check_circle_outline_rounded,
+                        ? AppIcons.infoOutlineRounded
+                        : AppIcons.checkCircleOutlineRounded,
                     size: 20,
                     color: _error != null ? scheme.error : scheme.primary,
                   ),
@@ -384,7 +385,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   : () => shareEntriesCsv(
                       ref.read(entriesProvider).value ?? const [],
                     ),
-              icon: const Icon(Icons.download_rounded),
+              icon: const Icon(AppIcons.downloadRounded),
               label: const Text('Export my data (CSV)'),
             ),
           ],

@@ -6,6 +6,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../../categories/data/category_repository.dart';
 import '../data/budget_repository.dart';
 import 'budget_progress_bar.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Opens the "Set budget" sheet. Pass [category] to edit that budget
 /// (or start a new one with that category already picked).
@@ -188,7 +189,10 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                         shape: BoxShape.circle,
                       ),
                       child: _category == null
-                          ? Icon(Icons.pie_chart_rounded, color: scheme.primary)
+                          ? Icon(
+                              AppIcons.pieChartRounded,
+                              color: scheme.primary,
+                            )
                           : Text(
                               _category!.emoji,
                               style: const TextStyle(fontSize: 22),
@@ -222,7 +226,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
                     onPressed: _saving ? null : _save,
-                    icon: const Icon(Icons.check_rounded, size: 18),
+                    icon: const Icon(AppIcons.checkRounded, size: 18),
                     label: const Text('Save'),
                   ),
                 ],
@@ -270,7 +274,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                           if (suggestion != null && suggestion > 0) ...[
                             ActionChip(
                               avatar: Icon(
-                                Icons.auto_awesome_rounded,
+                                AppIcons.autoAwesomeRounded,
                                 size: 16,
                                 color: scheme.primary,
                               ),
@@ -311,7 +315,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                       value: _alert,
                       onChanged: (v) => setState(() => _alert = v),
                       secondary: Icon(
-                        Icons.notifications_active_outlined,
+                        AppIcons.notificationsActiveOutlined,
                         color: scheme.primary,
                       ),
                       title: const Text('Warn me at 80%'),
@@ -326,7 +330,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
                           foregroundColor: scheme.error,
                         ),
                         onPressed: _remove,
-                        icon: const Icon(Icons.delete_outline),
+                        icon: const Icon(AppIcons.deleteOutline),
                         label: const Text('Remove budget'),
                       ),
                     ],

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Emoji the picker offers, grouped loosely by theme.
 const _emojiChoices = [
@@ -239,7 +240,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       visualDensity: VisualDensity.compact,
                     ),
                     onPressed: _save,
-                    icon: const Icon(Icons.check_rounded, size: 18),
+                    icon: const Icon(AppIcons.checkRounded, size: 18),
                     label: const Text('Save'),
                   ),
                 ],
@@ -262,7 +263,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       maxLength: 24,
                       decoration: const InputDecoration(
                         labelText: 'Name',
-                        prefixIcon: Icon(Icons.label_outline),
+                        prefixIcon: Icon(AppIcons.labelOutline),
                         counterText: '',
                       ),
                       validator: (v) {
@@ -338,12 +339,12 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                       decoration: InputDecoration(
                         labelText: 'Add a subcategory',
                         prefixIcon: const Icon(
-                          Icons.subdirectory_arrow_right_rounded,
+                          AppIcons.subdirectoryArrowRightRounded,
                         ),
                         errorText: _subError,
                         suffixIcon: IconButton(
                           tooltip: 'Add subcategory',
-                          icon: const Icon(Icons.add_circle_rounded),
+                          icon: const Icon(AppIcons.addCircleRounded),
                           color: scheme.primary,
                           onPressed: _addSub,
                         ),
@@ -356,7 +357,7 @@ class _State extends ConsumerState<CategoryEditorSheet> {
                           foregroundColor: scheme.error,
                         ),
                         onPressed: _delete,
-                        icon: const Icon(Icons.delete_outline),
+                        icon: const Icon(AppIcons.deleteOutline),
                         label: const Text('Delete category'),
                       ),
                     ],

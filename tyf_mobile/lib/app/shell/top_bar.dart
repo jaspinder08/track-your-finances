@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/utils/money.dart';
 import '../theme/app_theme.dart';
 import '../../core/widgets/round_icon_button.dart';
+import '../../core/design/app_icons.dart';
 
 /// Top bar shared by the main tabs: menu, balance pill, reports shortcut.
 class TopBar extends StatelessWidget {
@@ -35,7 +36,7 @@ class TopBar extends StatelessWidget {
       child: Row(
         children: [
           RoundIconButton(
-            icon: Icons.menu_rounded,
+            icon: AppIcons.menuRounded,
             onPressed: onMenu,
             tooltip: 'Menu',
           ),
@@ -100,7 +101,7 @@ class TopBar extends StatelessWidget {
           ),
           const Spacer(),
           RoundIconButton(
-            icon: Icons.auto_awesome_rounded,
+            icon: AppIcons.autoAwesomeRounded,
             onPressed: onReports,
             tooltip: 'Insights',
           ),

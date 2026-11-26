@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/design/app_icons.dart';
 
 /// One tab in the floating nav bar.
 class NavItem {
@@ -110,7 +111,7 @@ class FloatingNavBar extends StatelessWidget {
                     backgroundColor: scheme.primary,
                     foregroundColor: scheme.onPrimary,
                     tooltip: 'Add transaction',
-                    child: const Icon(Icons.add_rounded, size: 32),
+                    child: const Icon(AppIcons.addRounded, size: 32),
                   ),
                 ),
               ),

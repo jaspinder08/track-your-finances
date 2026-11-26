@@ -8,6 +8,7 @@ import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../widgets/day_entries_sheet.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Home tab: a month calendar. Each day shows its income and expense
 /// totals; tap a day to see its entries (or add one if it's empty).
@@ -71,7 +72,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             children: [
               IconButton(
                 onPressed: () => _shift(-1),
-                icon: const Icon(Icons.chevron_left_rounded),
+                icon: const Icon(AppIcons.chevronLeftRounded),
                 tooltip: 'Previous month',
               ),
               Expanded(
@@ -98,7 +99,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
               IconButton(
                 onPressed: () => _shift(1),
-                icon: const Icon(Icons.chevron_right_rounded),
+                icon: const Icon(AppIcons.chevronRightRounded),
                 tooltip: 'Next month',
               ),
             ],
@@ -272,21 +273,21 @@ class _MonthStrip extends StatelessWidget {
             'Income',
             Money.format(income),
             FinanceColors.income,
-            Icons.south_west_rounded,
+            AppIcons.southWestRounded,
           ),
           divider(),
           item(
             'Spent',
             Money.format(expense),
             FinanceColors.expense,
-            Icons.north_east_rounded,
+            AppIcons.northEastRounded,
           ),
           divider(),
           item(
             'Per day',
             Money.format(perDay),
             scheme.primary,
-            Icons.today_rounded,
+            AppIcons.todayRounded,
           ),
         ],
       ),
@@ -388,7 +389,7 @@ class _DayCell extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Icon(
-                    Icons.swap_horiz_rounded,
+                    AppIcons.swapHorizRounded,
                     size: 14,
                     color: scheme.primary,
                     semanticLabel: 'Transfer',

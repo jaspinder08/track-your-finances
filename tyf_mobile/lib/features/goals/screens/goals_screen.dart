@@ -6,6 +6,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import '../data/goal.dart';
 import 'goals_view.dart';
+import '../../../core/design/app_icons.dart';
 
 /// Goals page, opened from the sidebar. "New goal" is a floating button
 /// (bottom-right, thumb reach) that shrinks to "+" while scrolling down.
@@ -44,7 +45,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                 context,
                 initialType: EntryType.goal,
               ),
-              icon: const Icon(Icons.add_rounded),
+              icon: const Icon(AppIcons.addRounded),
               label: const Text('New goal'),
             )
           : null,
