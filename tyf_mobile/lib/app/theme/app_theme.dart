@@ -54,6 +54,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      fontFamily: 'Inter',
+      textTheme: _textTheme(),
       // Transparent so AppBackground shows through every page.
       scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
@@ -188,11 +190,45 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(fontWeight: FontWeight.w600),
-      ),
     );
   }
+}
+
+/// Manrope for big numbers, headings and titles; Inter for body text and
+/// labels. Numbers use tabular figures so amounts line up in lists.
+TextTheme _textTheme() {
+  const tab = [FontFeature.tabularFigures()];
+  TextStyle m(double size, FontWeight w, {double ls = 0}) => TextStyle(
+    fontFamily: 'Manrope',
+    fontSize: size,
+    fontWeight: w,
+    letterSpacing: ls,
+    fontFeatures: tab,
+  );
+  TextStyle i(double size, FontWeight w, {double ls = 0, double? h}) =>
+      TextStyle(
+        fontFamily: 'Inter',
+        fontSize: size,
+        fontWeight: w,
+        letterSpacing: ls,
+        height: h,
+        fontFeatures: tab,
+      );
+  return TextTheme(
+    displayLarge: m(57, FontWeight.w800, ls: -1.5),
+    displayMedium: m(45, FontWeight.w800, ls: -1),
+    displaySmall: m(36, FontWeight.w800, ls: -0.8),
+    headlineLarge: m(32, FontWeight.w800, ls: -0.8),
+    headlineMedium: m(28, FontWeight.w800, ls: -0.6),
+    headlineSmall: m(24, FontWeight.w700, ls: -0.4),
+    titleLarge: m(22, FontWeight.w700, ls: -0.3),
+    titleMedium: m(16, FontWeight.w700, ls: -0.1),
+    titleSmall: m(14, FontWeight.w700),
+    bodyLarge: i(16, FontWeight.w400, h: 1.45),
+    bodyMedium: i(14, FontWeight.w400, h: 1.45),
+    bodySmall: i(12, FontWeight.w400, h: 1.4),
+    labelLarge: i(14, FontWeight.w600),
+    labelMedium: i(12, FontWeight.w600),
+    labelSmall: i(11, FontWeight.w600, ls: 0.2),
+  );
 }

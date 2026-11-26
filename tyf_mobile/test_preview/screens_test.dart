@@ -34,6 +34,19 @@ Future<void> _loadFonts() async {
       ),
     );
   await icons.load();
+  // The app's own fonts.
+  for (final family in ['Inter', 'Manrope']) {
+    final loader = FontLoader(family);
+    for (final f in Directory('assets/fonts').listSync()) {
+      final name = f.uri.pathSegments.last;
+      if (name.startsWith('$family-') && name.endsWith('.ttf')) {
+        loader.addFont(
+          Future.value(ByteData.sublistView(File(f.path).readAsBytesSync())),
+        );
+      }
+    }
+    await loader.load();
+  }
   // Phosphor icon fonts, from the package in the pub cache.
   final pub = Platform.environment['PUB_CACHE'] ??
       '${Platform.environment['HOME']}/.pub-cache';
