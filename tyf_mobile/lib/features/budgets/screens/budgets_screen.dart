@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/money.dart';
 import '../../../core/design/design.dart';
+import '../../../core/navigation/page_route.dart';
 import '../../categories/data/category_repository.dart';
+import '../../categories/screens/categories_screen.dart';
 import '../data/budget_repository.dart';
 import '../widgets/budget_progress_bar.dart';
 import '../widgets/budget_sheet.dart';
@@ -59,6 +61,8 @@ class BudgetsView extends ConsumerWidget {
           for (final e in unbudgeted)
             _UnbudgetedTile(name: e.key, paise: e.value),
         ],
+        const SizedBox(height: 16),
+        const _ManageCategories(),
       ],
     );
   }
@@ -426,8 +430,31 @@ class _Empty extends ConsumerWidget {
                 ),
             ],
           ),
+          const SizedBox(height: AppSpace.md),
+          TextButton.icon(
+            onPressed: () => Navigator.of(
+              context,
+            ).push(appPageRoute<void>(const CategoriesScreen())),
+            icon: const Icon(Icons.grid_view_rounded, size: 18),
+            label: const Text('Manage categories'),
+          ),
         ],
       ),
     );
   }
+}
+
+/// Opens the Categories page: add, rename, re-emoji, reorder.
+class _ManageCategories extends StatelessWidget {
+  const _ManageCategories();
+
+  @override
+  Widget build(BuildContext context) => OutlinedButton.icon(
+    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(46)),
+    onPressed: () => Navigator.of(
+      context,
+    ).push(appPageRoute<void>(const CategoriesScreen())),
+    icon: const Icon(Icons.grid_view_rounded, size: 20),
+    label: const Text('Manage categories'),
+  );
 }

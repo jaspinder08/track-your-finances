@@ -145,8 +145,8 @@ void main() {
     await shot('03b_budgets_scrolled');
     await tester.drag(find.text('Spending without a budget'), const Offset(0, 900));
     await tester.pumpAndSettle();
-    await tab('Categories');
-    await shot('04_categories');
+    await tab('History');
+    await shot('04_history');
     await tab('Reports');
     await shot('05_reports');
     await tab('Calendar');
@@ -171,12 +171,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Accounts'));
     await shot('08_accounts');
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Menu').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('All transactions'));
-    await shot('08a_history');
     await tester.pageBack();
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Menu').first);
@@ -212,8 +206,12 @@ void main() {
     await tester.tapAt(const Offset(200, 60));
     await tester.pumpAndSettle();
 
-    await tab('Categories');
-    await tester.tap(find.byTooltip('Add transaction').first);
-    await shot('12_category_editor');
+    await tester.drag(find.text('Category budgets'), const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    await shot('11b_budgets_bottom');
+    await tester.tap(find.text('Manage categories'));
+    await shot('12_categories');
+    await tester.tap(find.byTooltip('New category'));
+    await shot('13_category_editor');
   });
 }

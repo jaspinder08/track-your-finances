@@ -7,12 +7,11 @@ import '../../core/design/motion.dart';
 import '../../features/budgets/screens/budgets_screen.dart';
 import '../../features/budgets/widgets/budget_sheet.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
-import '../../features/categories/screens/categories_screen.dart';
-import '../../features/categories/widgets/category_editor_sheet.dart';
 import '../../features/budgets/data/budget_repository.dart';
 import '../../core/navigation/page_route.dart';
 import '../../features/accounts/account_balances.dart';
 import '../../features/accounts/accounts_screen.dart';
+import '../../features/history/history_screen.dart';
 import '../../features/insights/insights_sheet.dart';
 import '../../features/onboarding/setup_sheet.dart';
 import '../../features/sync/sync_controller.dart';
@@ -71,14 +70,14 @@ class _AppShellState extends ConsumerState<AppShell>
       Icons.pie_chart_rounded,
       'Budgets',
     ),
-    NavItem(Icons.grid_view_outlined, Icons.grid_view_rounded, 'Categories'),
+    NavItem(Icons.receipt_long_outlined, Icons.receipt_long_rounded, 'History'),
     NavItem(Icons.insights_outlined, Icons.insights_rounded, 'Reports'),
   ];
 
   static const _pages = [
     CalendarScreen(),
     BudgetsScreen(),
-    CategoriesScreen(),
+    HistoryScreen(asTab: true),
     ReportsScreen(),
   ];
 
@@ -186,11 +185,6 @@ class _AppShellState extends ConsumerState<AppShell>
         onAdd: () {
           if (_index == 1) {
             showBudgetSheet(context);
-          } else if (_index == 2) {
-            showCategoryEditor(
-              context,
-              kind: ref.read(categoryKindViewProvider),
-            );
           } else {
             showAddTransactionScreen(context);
           }

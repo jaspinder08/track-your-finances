@@ -10,7 +10,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
 import '../widgets/category_editor_sheet.dart';
 
-/// Which list the Categories tab shows. The + button reads this.
+/// Which list (expense or income) the Categories page shows.
 final categoryKindViewProvider =
     NotifierProvider<CategoryKindView, CategoryKind>(CategoryKindView.new);
 
@@ -20,9 +20,34 @@ class CategoryKindView extends Notifier<CategoryKind> {
   void set(CategoryKind k) => state = k;
 }
 
-/// Categories tab: expense/income lists. Tap to edit, drag to reorder.
+/// Categories page (from Budgets › Manage categories, or the sidebar).
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Categories'),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: AddButton(
+            tooltip: 'New category',
+            onPressed: () => showCategoryEditor(
+              context,
+              kind: ref.read(categoryKindViewProvider),
+            ),
+          ),
+        ),
+      ],
+    ),
+    body: const CategoriesView(),
+  );
+}
+
+/// Expense/income category lists. Tap to open, drag to reorder.
+class CategoriesView extends ConsumerWidget {
+  const CategoriesView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +118,7 @@ class CategoriesScreen extends ConsumerWidget {
         ),
         Expanded(
           child: ReorderableListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
             itemCount: list.length,
             buildDefaultDragHandles: false,
             onReorder: (from, to) =>

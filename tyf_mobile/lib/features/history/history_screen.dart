@@ -70,7 +70,10 @@ List<(DateTime, List<Entry>)> groupByDay(List<Entry> all, HistoryFilter f) {
 
 /// Every transaction in one list, with search and filters.
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key, this.account});
+  const HistoryScreen({super.key, this.account, this.asTab = false});
+
+  /// Shown as a main tab: no app bar, room for the floating nav bar.
+  final bool asTab;
 
   /// Opens already filtered to this account (from the Accounts page).
   final String? account;
@@ -169,161 +172,163 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       ),
     );
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('All transactions')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
-              controller: _search,
-              onChanged: (v) => _set(query: v),
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Search name, category, amount…',
-                prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: _filter.query.isEmpty
-                    ? null
-                    : IconButton(
-                        tooltip: 'Clear search',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _search.clear();
-                          _set(query: '');
-                        },
-                      ),
-              ),
+    final body = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: TextField(
+            controller: _search,
+            onChanged: (v) => _set(query: v),
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Search name, category, amount…',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: _filter.query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Clear search',
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        _search.clear();
+                        _set(query: '');
+                      },
+                    ),
             ),
           ),
-          SizedBox(
-            height: 44,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                if (_filter.account != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: InputChip(
-                      avatar: Icon(
-                        accountIcons[_filter.account] ??
-                            Icons.account_balance_outlined,
-                        size: 18,
-                      ),
-                      label: Text(_filter.account!),
-                      selected: true,
-                      onDeleted: () => setState(
-                        () => _filter = HistoryFilter(
-                          query: _filter.query,
-                          type: _filter.type,
-                          category: _filter.category,
-                        ),
+        ),
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              if (_filter.account != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InputChip(
+                    avatar: Icon(
+                      accountIcons[_filter.account] ??
+                          Icons.account_balance_outlined,
+                      size: 18,
+                    ),
+                    label: Text(_filter.account!),
+                    selected: true,
+                    onDeleted: () => setState(
+                      () => _filter = HistoryFilter(
+                        query: _filter.query,
+                        type: _filter.type,
+                        category: _filter.category,
                       ),
                     ),
-                  ),
-                typeChip('All', null),
-                typeChip('Expenses', EntryType.expense),
-                typeChip('Income', EntryType.income),
-                typeChip('Transfers', EntryType.transfer),
-                if (_filter.type != EntryType.transfer)
-                  InputChip(
-                    avatar: const Icon(Icons.grid_view_rounded, size: 18),
-                    label: Text(_filter.category ?? 'Category'),
-                    selected: _filter.category != null,
-                    onPressed: _pickCategory,
-                    onDeleted: _filter.category == null
-                        ? null
-                        : () => _set(clearCategory: true),
-                  ),
-              ],
-            ),
-          ),
-          // What the current list adds up to.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-            child: Row(
-              children: [
-                Text(
-                  '$shown ${shown == 1 ? 'transaction' : 'transactions'}',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.onSurfaceVariant,
                   ),
                 ),
-                const Spacer(),
-                if (earned > 0)
-                  Text(
-                    '+${Money.format(earned)}  ',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: FinanceColors.income,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                if (spent > 0)
-                  Text(
-                    '−${Money.format(spent)}',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: FinanceColors.expense,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-              ],
-            ),
+              typeChip('All', null),
+              typeChip('Expenses', EntryType.expense),
+              typeChip('Income', EntryType.income),
+              typeChip('Transfers', EntryType.transfer),
+              if (_filter.type != EntryType.transfer)
+                InputChip(
+                  avatar: const Icon(Icons.grid_view_rounded, size: 18),
+                  label: Text(_filter.category ?? 'Category'),
+                  selected: _filter.category != null,
+                  onPressed: _pickCategory,
+                  onDeleted: _filter.category == null
+                      ? null
+                      : () => _set(clearCategory: true),
+                ),
+            ],
           ),
-          Expanded(
-            child: groups.isEmpty
-                ? EmptyState(
-                    emoji: _filter.isEmpty ? '🧾' : '🔍',
-                    title: _filter.isEmpty
-                        ? 'No transactions yet'
-                        : 'Nothing matches',
-                    message: _filter.isEmpty
-                        ? 'Tap + to add your first one.'
-                        : 'Try another word or clear the filters.',
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    itemCount: groups.length,
-                    itemBuilder: (_, i) {
-                      final (day, list) = groups[i];
-                      final net = list.fold(0, (s, e) => s + e.balanceEffect);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                            child: Row(
-                              children: [
+        ),
+        // What the current list adds up to.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+          child: Row(
+            children: [
+              Text(
+                '$shown ${shown == 1 ? 'transaction' : 'transactions'}',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              if (earned > 0)
+                Text(
+                  '+${Money.format(earned)}  ',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: FinanceColors.income,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              if (spent > 0)
+                Text(
+                  '−${Money.format(spent)}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: FinanceColors.expense,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: groups.isEmpty
+              ? EmptyState(
+                  emoji: _filter.isEmpty ? '🧾' : '🔍',
+                  title: _filter.isEmpty
+                      ? 'No transactions yet'
+                      : 'Nothing matches',
+                  message: _filter.isEmpty
+                      ? 'Tap + to add your first one.'
+                      : 'Try another word or clear the filters.',
+                )
+              : ListView.builder(
+                  padding: EdgeInsets.only(bottom: widget.asTab ? 120 : 32),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  itemCount: groups.length,
+                  itemBuilder: (_, i) {
+                    final (day, list) = groups[i];
+                    final net = list.fold(0, (s, e) => s + e.balanceEffect);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                          child: Row(
+                            children: [
+                              Text(
+                                _dayLabel(day),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (net != 0)
                                 Text(
-                                  _dayLabel(day),
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                  '${net < 0 ? '−' : '+'}${Money.format(net.abs())}',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: scheme.onSurfaceVariant,
                                   ),
                                 ),
-                                const Spacer(),
-                                if (net != 0)
-                                  Text(
-                                    '${net < 0 ? '−' : '+'}${Money.format(net.abs())}',
-                                    style: theme.textTheme.labelLarge?.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                            ],
                           ),
-                          for (final e in list)
-                            SwipeEntry(
-                              entry: e,
-                              child: EntryTile(entry: e),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                        ),
+                        for (final e in list)
+                          SwipeEntry(
+                            entry: e,
+                            child: EntryTile(entry: e),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+    if (widget.asTab) return body;
+    return Scaffold(
+      appBar: AppBar(title: const Text('All transactions')),
+      body: body,
     );
   }
 

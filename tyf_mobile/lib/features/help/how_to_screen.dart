@@ -21,6 +21,13 @@ class HowToScreen extends StatelessWidget {
           'see, edit or delete its entries.',
     ),
     (
+      '🧾',
+      'Find any transaction',
+      'The History tab lists everything, newest first. Search by name, '
+          'category or amount, and filter by type. Swipe left to delete '
+          '(with Undo), right to copy it to today.',
+    ),
+    (
       '🎯',
       'Set budgets',
       'On the Budgets tab, set a monthly limit for a category. The bar turns '
@@ -29,8 +36,9 @@ class HowToScreen extends StatelessWidget {
     (
       '🗂️',
       'Make categories yours',
-      'The Categories tab lets you add, rename or re-emoji categories and '
-          'their sub-categories. Past entries follow a rename.',
+      'Open Manage categories (at the bottom of Budgets, or in the menu) to '
+          'add, rename or re-emoji categories and their sub-categories. Past '
+          'entries follow a rename.',
     ),
     (
       '🔁',

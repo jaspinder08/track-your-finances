@@ -308,7 +308,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Categories').first);
+    // Categories now lives in the sidebar (and Budgets › Manage).
+    await tester.tap(find.byTooltip('Menu').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Categories'));
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsOneWidget);
     final list = find.byType(Scrollable).last;
@@ -329,8 +332,8 @@ void main() {
     expect((await entries.all()).single.data.category, 'Wellness');
     expect(find.text('Wellness'), findsOneWidget);
 
-    // + on Categories adds a new one; duplicates are refused.
-    await tester.tap(find.byTooltip('Add transaction'));
+    // "New" on Categories adds one; duplicates are refused.
+    await tester.tap(find.byTooltip('New category'));
     await tester.pumpAndSettle();
     expect(find.text('New category'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'Food');
@@ -353,7 +356,7 @@ void main() {
     expect(find.text('Pets'), findsOneWidget);
 
     // The add sheet now offers the new category.
-    await tester.tap(find.byTooltip('Calendar').first);
+    await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Add transaction'));
     await tester.pumpAndSettle();
