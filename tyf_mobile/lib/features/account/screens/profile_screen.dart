@@ -10,6 +10,13 @@ import '../../sync/sync_controller.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../data/account.dart';
+import '../../../app/shell/top_bar.dart' show hideBalanceProvider;
+import '../../../core/utils/money.dart';
+import '../../../core/widgets/option_row.dart';
+import '../../accounts/account_balances.dart';
+import '../../accounts/accounts_screen.dart';
+import '../../reports/report_month_picker.dart';
+import '../data/csv_export.dart';
 import 'sign_in_screen.dart';
 import 'sign_out_flow.dart';
 import '../../../core/design/app_icons.dart';
@@ -20,6 +27,10 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final total = ref
+        .watch(accountBalancesProvider)
+        .values
+        .fold(0, (s, v) => s + v);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final account = ref.watch(accountProvider);
@@ -109,7 +120,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const SectionHeader('Account & backup'),
+          const OptionSection(AppIcons.cloudSyncOutlined, 'Account & Backup'),
           FadeSlideIn(
             index: 2,
             child: AppCard(
@@ -185,6 +196,61 @@ class ProfileScreen extends ConsumerWidget {
                       ],
                     ),
             ),
+          ),
+          // ── Your money ──
+          const OptionSection(
+            AppIcons.accountBalanceWalletOutlined,
+            'Your Money',
+          ),
+          OptionRow(
+            icon: AppIcons.accountBalanceWalletOutlined,
+            color: const Color(0xFF8B7CF6),
+            title: 'Accounts',
+            subtitle: ref.watch(hideBalanceProvider)
+                ? 'Cash, bank, savings, card and wallet'
+                : '${Money.format(total.abs())}${total < 0 ? ' overdrawn' : ''} across all accounts',
+            onTap: () => Navigator.of(
+              context,
+            ).push(appPageRoute<void>(const AccountsScreen())),
+          ),
+          OptionRow(
+            icon: AppIcons.visibilityOffOutlined,
+            color: const Color(0xFF2EC4C4),
+            title: 'Hide balance',
+            subtitle: 'Show ₹ • • • • • instead of amounts',
+            trailing: Switch(
+              value: ref.watch(hideBalanceProvider),
+              onChanged: (_) => ref.read(hideBalanceProvider.notifier).toggle(),
+            ),
+            onTap: () => ref.read(hideBalanceProvider.notifier).toggle(),
+          ),
+          // ── Your data ──
+          const OptionSection(AppIcons.databaseOutlined, 'Your Data'),
+          OptionRow(
+            icon: AppIcons.downloadRounded,
+            color: const Color(0xFF34C77B),
+            title: 'Export to CSV',
+            subtitle: 'Open in Excel or Google Sheets',
+            onTap: () async {
+              final all = ref.read(entriesProvider).value ?? const [];
+              if (all.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text('No transactions to export yet'),
+                  ),
+                );
+                return;
+              }
+              await shareEntriesCsv(all);
+            },
+          ),
+          OptionRow(
+            icon: AppIcons.filePdf,
+            color: const Color(0xFFF0616D),
+            title: 'PDF report',
+            subtitle: 'A monthly report to save, print or share',
+            onTap: () => pickAndShareReport(context, ref),
           ),
           if (!account.isGuest) ...[
             const SizedBox(height: 16),

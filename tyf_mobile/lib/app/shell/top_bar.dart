@@ -34,6 +34,7 @@ class TopBar extends ConsumerWidget {
     required this.onReports,
     this.onBalance,
     this.compact = false,
+    this.onScanSms,
   });
 
   final int balancePaise;
@@ -45,6 +46,9 @@ class TopBar extends ConsumerWidget {
 
   /// Slimmer bar once the page is scrolled, to give lists more room.
   final bool compact;
+
+  /// Shown on the Calendar tab: opens Scan SMS.
+  final VoidCallback? onScanSms;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -153,6 +157,14 @@ class TopBar extends ConsumerWidget {
             ),
           ),
           const Spacer(),
+          if (onScanSms != null) ...[
+            RoundIconButton(
+              icon: AppIcons.chatText,
+              onPressed: onScanSms!,
+              tooltip: 'Scan SMS',
+            ),
+            const SizedBox(width: 8),
+          ],
           RoundIconButton(
             icon: AppIcons.autoAwesomeRounded,
             onPressed: onReports,

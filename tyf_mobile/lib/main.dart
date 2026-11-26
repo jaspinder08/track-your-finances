@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +13,7 @@ import 'app/app.dart';
 import 'app/theme/theme_controller.dart';
 import 'features/account/data/account.dart';
 import 'features/account/data/firebase_auth_repository.dart';
+import 'features/notifications/notifications.dart';
 import 'features/sync/firestore_remote_store.dart';
 import 'features/sync/sync_controller.dart';
 import 'features/sync/sync_engine.dart';
@@ -33,6 +37,7 @@ Future<void> main() async {
     );
     auth = FirebaseAuthRepository();
     remote = FirestoreRemoteStore();
+    FirebaseMessaging.onBackgroundMessage(firebaseBackgroundHandler);
   } catch (_) {}
 
   runApp(
@@ -45,4 +50,14 @@ Future<void> main() async {
       child: const TyfApp(),
     ),
   );
+
+  // Notifications: set up quietly; only ask for permission (and register
+  // for pushes) if the user has turned them on in Settings.
+  unawaited(() async {
+    await Notifications.instance.init();
+    final on =
+        (prefs.getBool('notif_daily') ?? false) ||
+        (prefs.getBool('notif_budget') ?? false);
+    if (remote != null && on) await Notifications.instance.initPush();
+  }());
 }

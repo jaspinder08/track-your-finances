@@ -209,6 +209,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Profile'));
     await shot('08b_profile');
+    await tester.drag(find.text('Account & Backup'), const Offset(0, -900));
+    await shot('08d_profile_bottom');
     await tester.pageBack();
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Menu').first);
@@ -222,6 +224,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Settings'));
     await shot('09_settings');
+    await tester.drag(find.text('Appearance'), const Offset(0, -900));
+    await shot('09b_settings');
     await tester.pageBack();
     await tester.pumpAndSettle();
 

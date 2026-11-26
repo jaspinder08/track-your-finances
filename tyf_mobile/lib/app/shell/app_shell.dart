@@ -13,6 +13,8 @@ import '../../features/accounts/account_balances.dart';
 import '../../features/accounts/accounts_screen.dart';
 import '../../features/history/history_screen.dart';
 import '../../features/insights/insights_sheet.dart';
+import '../../features/notifications/notifications.dart';
+import '../../features/sms/sms_scan_screen.dart';
 import '../../features/onboarding/setup_sheet.dart';
 import '../../features/sync/sync_controller.dart';
 import '../../features/analytics/analytics_screen.dart';
@@ -109,6 +111,7 @@ class _AppShellState extends ConsumerState<AppShell>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(budgetAlertsProvider); // notifies on budget thresholds
     // After a sign-in from the sidebar, the shell is already on screen.
     ref.listen(setupPromptProvider, (_, pending) {
       if (pending) {
@@ -130,6 +133,11 @@ class _AppShellState extends ConsumerState<AppShell>
                   .values
                   .fold(0, (s, v) => s + v),
               compact: _scrolled[_index],
+              onScanSms: _index == 0
+                  ? () => Navigator.of(
+                      context,
+                    ).push(appPageRoute<void>(const SmsScanScreen()))
+                  : null,
               onMenu: () => _scaffoldKey.currentState?.openDrawer(),
               onBalance: () => Navigator.of(
                 context,
