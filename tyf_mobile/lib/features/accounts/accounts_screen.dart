@@ -53,7 +53,7 @@ class AccountsScreen extends ConsumerWidget {
         style: IconButton.styleFrom(
           shape: const CircleBorder(),
           fixedSize: const Size(48, 48),
-          backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.8),
+          backgroundColor: scheme.cardFill(0.8),
         ),
         onPressed: onTap,
         icon: Icon(icon),
@@ -210,7 +210,10 @@ class AccountsScreen extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text('Your Accounts', style: theme.textTheme.titleLarge),
+                child: Text(
+                  'Your Accounts',
+                  style: theme.textTheme.titleMedium,
+                ),
               ),
               TextButton(
                 onPressed: () => showInsightsSheet(
@@ -244,10 +247,9 @@ class AccountsScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              color: scheme.surfaceContainerHigh.withValues(alpha: 0.55),
-              border: Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.2),
-              ),
+              color: scheme.cardFill(0.55),
+              border: Border.all(color: scheme.cardBorder),
+              boxShadow: scheme.cardShadow,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +367,7 @@ class _AccountTile extends ConsumerWidget {
         : scheme.onSurface;
 
     return Material(
-      color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+      color: scheme.cardFill(0.6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),

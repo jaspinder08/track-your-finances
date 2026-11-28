@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'surface.dart';
 import 'tokens.dart';
 
 /// The standard surface card: soft fill, hairline border, rounded corners.
@@ -29,19 +30,29 @@ class AppCard extends StatelessWidget {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
       side: border && tint == null
-          ? BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.3))
+          ? BorderSide(color: scheme.cardBorder)
           : BorderSide.none,
     );
-    return Material(
+    final material = Material(
       color:
           tint?.withValues(alpha: 0.12) ??
-          scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          (scheme.isLight
+              ? Colors.white
+              : scheme.surfaceContainerHighest.withValues(alpha: 0.4)),
       shape: shape,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(padding: padding, child: child),
       ),
+    );
+    if (tint != null || !scheme.isLight) return material;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: scheme.cardShadow,
+      ),
+      child: material,
     );
   }
 }

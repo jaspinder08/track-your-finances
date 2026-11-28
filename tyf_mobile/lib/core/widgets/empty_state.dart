@@ -58,30 +58,25 @@ class EmptyState extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 112,
-                  height: 112,
+                  width: 76,
+                  height: 76,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        scheme.primary.withValues(alpha: 0.25),
-                        scheme.primary.withValues(alpha: 0.05),
-                      ],
-                    ),
+                    color: scheme.primary.withValues(alpha: 0.08),
                   ),
                   child: emoji != null
                       ? Text(
                           emoji!,
-                          style: const TextStyle(fontSize: 52, height: 1),
+                          style: const TextStyle(fontSize: 34, height: 1),
                         )
-                      : Icon(icon, size: 48, color: scheme.primary),
+                      : Icon(icon, size: 32, color: scheme.primary),
                 ),
-                const SizedBox(height: AppSpace.xxl),
+                const SizedBox(height: AppSpace.xl),
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall?.copyWith(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),

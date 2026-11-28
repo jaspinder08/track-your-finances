@@ -9,6 +9,7 @@ import '../../../core/utils/money.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
+import '../../../core/design/surface.dart';
 import '../widgets/day_entries_sheet.dart';
 
 /// Home tab: month summary cards and a month calendar. Tap a day to see
@@ -148,11 +149,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             Container(
               padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
               decoration: BoxDecoration(
-                color: scheme.surfaceContainerHigh.withValues(alpha: 0.45),
+                color: scheme.cardFill(0.45),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.2),
-                ),
+                border: Border.all(color: scheme.cardBorder),
               ),
               child: Column(
                 children: [
@@ -265,15 +264,16 @@ class _StatCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withValues(alpha: 0.16),
-              scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+              color.withValues(alpha: scheme.isLight ? 0.10 : 0.16),
+              scheme.cardFill(0.6),
             ],
           ),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: color.withValues(alpha: scheme.isLight ? 0.22 : 0.3),
+          ),
         ),
         child: Stack(
           children: [
-            Positioned.fill(child: CustomPaint(painter: _WavePainter(color))),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 0, 8, 6),
               child: Row(
@@ -321,43 +321,6 @@ class _StatCard extends StatelessWidget {
 }
 
 /// A soft rising wave along the bottom of a stat card.
-class _WavePainter extends CustomPainter {
-  const _WavePainter(this.color);
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width, h = size.height;
-    final line = Path()
-      ..moveTo(0, h - 6)
-      ..cubicTo(w * 0.35, h - 2, w * 0.55, h - 4, w * 0.75, h - 12)
-      ..quadraticBezierTo(w * 0.9, h - 18, w, h - 20);
-    final fill = Path.from(line)
-      ..lineTo(w, h)
-      ..lineTo(0, h)
-      ..close();
-    canvas.drawPath(
-      fill,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [color.withValues(alpha: 0.22), color.withValues(alpha: 0)],
-        ).createShader(Offset.zero & size),
-    );
-    canvas.drawPath(
-      line,
-      Paint()
-        ..color = color.withValues(alpha: 0.8)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_WavePainter old) => old.color != color;
-}
 
 /// One day tile. Spending days glow (stronger for heavier days), today
 /// has an accent outline, the selected day a filled accent tint.
@@ -386,9 +349,20 @@ class _DayCell extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final spent = expense > 0 && inMonth;
+    final light = scheme.isLight;
     final active = income > 0 || expense > 0 || hasTransfer;
 
-    final Gradient? gradient = spent
+    final Gradient? gradient = spent && light
+        // Light mode: a clean red wash that deepens with spending.
+        ? LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              FinanceColors.expense.withValues(alpha: 0.07 + 0.22 * heat),
+              FinanceColors.expense.withValues(alpha: 0.04 + 0.14 * heat),
+            ],
+          )
+        : spent
         ? LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -407,12 +381,16 @@ class _DayCell extends StatelessWidget {
         : isToday
         ? scheme.primary.withValues(alpha: 0.12)
         : inMonth
-        ? scheme.surfaceContainerHighest.withValues(alpha: 0.35)
+        ? (light
+              ? const Color(0xFFF5F6F9)
+              : scheme.surfaceContainerHighest.withValues(alpha: 0.35))
         : scheme.surfaceContainerHighest.withValues(alpha: 0.12);
     final borderColor = isToday
         ? scheme.primary
         : spent
-        ? FinanceColors.expense.withValues(alpha: 0.35 + 0.5 * heat)
+        ? FinanceColors.expense.withValues(
+            alpha: light ? 0.18 + 0.4 * heat : 0.35 + 0.5 * heat,
+          )
         : Colors.transparent;
 
     return GestureDetector(
@@ -426,7 +404,7 @@ class _DayCell extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor, width: isToday ? 2 : 1),
           boxShadow: [
-            if (spent && heat > 0.5)
+            if (spent && heat > 0.5 && !light)
               BoxShadow(
                 color: FinanceColors.expense.withValues(alpha: 0.25 * heat),
                 blurRadius: 14,
@@ -457,7 +435,11 @@ class _DayCell extends StatelessWidget {
               if (expense > 0)
                 _CellAmount(
                   '−${Money.compact(expense)}',
-                  spent ? const Color(0xFFFF8A92) : FinanceColors.expense,
+                  spent && !light
+                      ? const Color(0xFFFF8A92)
+                      : light
+                      ? const Color(0xFFC8303A)
+                      : FinanceColors.expense,
                 ),
               if (hasTransfer)
                 Icon(

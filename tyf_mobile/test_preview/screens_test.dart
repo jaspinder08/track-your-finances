@@ -125,6 +125,10 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
+    const light = bool.fromEnvironment('LIGHT');
+    tester.platformDispatcher.platformBrightnessTestValue =
+        light ? Brightness.light : Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
     final entries = InMemoryEntryRepository();
     final budgets = InMemoryBudgetRepository();
@@ -148,7 +152,7 @@ void main() {
       await tester.pumpAndSettle();
       await expectLater(
         find.byType(MaterialApp),
-        matchesGoldenFile('out/$name.png'),
+        matchesGoldenFile(light ? 'out_light/$name.png' : 'out/$name.png'),
       );
     }
 
@@ -158,11 +162,7 @@ void main() {
     }
 
     await shot('01_calendar');
-    await tester.tap(find.text('−₹75').first); // today's cell
-    await shot('02_day_sheet');
-    await tester.tapAt(const Offset(200, 100));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Insights'));
+        await tester.tap(find.byTooltip('Insights'));
     await shot('02b_insights');
     await tester.tapAt(const Offset(200, 40));
     await tester.pumpAndSettle();

@@ -165,9 +165,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       return Padding(
         padding: const EdgeInsets.only(right: 8),
         child: Material(
-          color: sel
-              ? scheme.primary
-              : scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+          color: sel ? scheme.primary : scheme.cardFill(0.7),
           shape: StadiumBorder(
             side: BorderSide(
               color: sel
@@ -231,6 +229,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       hintText: 'Search transactions…',
+                      filled: true,
+                      fillColor: scheme.isLight ? Colors.white : null,
                       prefixIcon: const Icon(AppIcons.searchRounded),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(100),
@@ -238,9 +238,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(100),
-                        borderSide: BorderSide(
-                          color: scheme.outlineVariant.withValues(alpha: 0.25),
-                        ),
+                        borderSide: BorderSide(color: scheme.cardBorder),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(100),
@@ -269,9 +267,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     style: IconButton.styleFrom(
                       shape: const CircleBorder(),
                       fixedSize: const Size(56, 56),
-                      backgroundColor: scheme.surfaceContainerHigh.withValues(
-                        alpha: 0.8,
-                      ),
+                      backgroundColor: scheme.cardFill(0.8),
+                      side: scheme.isLight
+                          ? BorderSide(color: scheme.cardBorder)
+                          : null,
                     ),
                     onPressed: _filter.type == EntryType.transfer
                         ? null
@@ -353,14 +352,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    _filter.isEmpty ? 'Recent Transactions' : 'Results',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                ),
-                Text(
-                  '${list.length} ${list.length == 1 ? 'transaction' : 'transactions'}',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.primary,
+                    _filter.isEmpty ? 'Recent' : 'Results',
+                    style: theme.textTheme.titleMedium,
                   ),
                 ),
               ],
@@ -390,52 +383,58 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 child: Row(
                   children: [
                     Text(
-                      _dayLabel(day),
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      _dayLabel(day).toUpperCase(),
+                      style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: scheme.onSurfaceVariant,
-                        letterSpacing: 0.2,
+                        letterSpacing: 0.8,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest.withValues(
-                          alpha: 0.6,
-                        ),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Text(
-                        '${dayEntries.length}',
-                        style: theme.textTheme.labelSmall?.copyWith(
+                    const Spacer(),
+                    if (_daySpend(dayEntries) > 0)
+                      Text(
+                        '−${Money.format(_daySpend(dayEntries))}',
+                        style: theme.textTheme.labelMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList.separated(
-                itemCount: dayEntries.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (_, i) => SwipeEntry(
-                  entry: dayEntries[i],
-                  child: _TxCard(entry: dayEntries[i]),
+              sliver: SliverToBoxAdapter(
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: scheme.cardFill(0.6),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: scheme.cardBorder),
+                    boxShadow: scheme.cardShadow,
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < dayEntries.length; i++) ...[
+                        if (i > 0)
+                          Divider(
+                            height: 1,
+                            indent: 72,
+                            color: scheme.cardBorder,
+                          ),
+                        SwipeEntry(
+                          entry: dayEntries[i],
+                          child: _TxCard(entry: dayEntries[i]),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
-          SliverToBoxAdapter(
-            child: SizedBox(height: widget.asTab ? 120 : 32),
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: widget.asTab ? 120 : 32)),
         ],
       ],
     );
@@ -480,50 +479,68 @@ class _TxCard extends ConsumerWidget {
       if (d.paymentMethod != null) d.paymentMethod,
     ].join(' • ');
 
-    final (sign, typeColor, tag) = switch (entry.type) {
+    final (sign, typeColor, _) = switch (entry.type) {
       EntryType.income => ('+', FinanceColors.income, 'Income'),
       EntryType.expense => ('−', FinanceColors.expense, 'Expense'),
       EntryType.goal => ('', const Color(0xFF8B5CF6), 'Goal'),
       _ => ('', scheme.primary, 'Transfer'),
     };
 
-    final cardBg = Color.lerp(
-      scheme.surfaceContainerHigh,
-      typeColor,
-      isDark ? 0.14 : 0.09,
-    )!;
-    final cardBorder = typeColor.withValues(alpha: isDark ? 0.28 : 0.20);
+    // One neutral surface for every transaction, matching the rest of the
+    // theme; colour lives only on the amount and the small type marker.
+    final amountColor = entry.type == EntryType.expense
+        ? scheme.onSurface
+        : typeColor;
 
     return Material(
-      color: cardBg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: cardBorder),
-      ),
-      clipBehavior: Clip.antiAlias,
+      color: scheme.isLight ? Colors.white : scheme.surfaceContainerHigh,
       child: InkWell(
         onTap: () => showAddTransactionScreen(context, editing: entry),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+          padding: const EdgeInsets.fromLTRB(12, 10, 0, 10),
           child: Row(
             children: [
-              glyph != null
-                  ? CategoryTile(name: d.category, glyph: glyph, size: 52)
-                  : Container(
-                      width: 52,
-                      height: 52,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  glyph != null
+                      ? CategoryTile(name: d.category, glyph: glyph, size: 46)
+                      : Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(13),
+                            color: typeColor.withValues(alpha: 0.15),
+                          ),
+                          child: Icon(entry.type.icon, color: typeColor),
+                        ),
+                  // Type marker: a small arrow badge on the tile's corner.
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: Container(
+                      width: 20,
+                      height: 20,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        gradient: LinearGradient(
-                          colors: [
-                            typeColor.withValues(alpha: 0.9),
-                            Color.lerp(typeColor, Colors.black, 0.35)!,
-                          ],
+                        color: typeColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? scheme.surfaceContainerHigh
+                              : Colors.white,
+                          width: 2,
                         ),
                       ),
-                      child: Icon(entry.type.icon, color: Colors.white),
+                      child: Icon(
+                        entry.type.icon,
+                        size: 10,
+                        color: Colors.white,
+                      ),
                     ),
-              const SizedBox(width: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,20 +549,18 @@ class _TxCard extends ConsumerWidget {
                       entry.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     if (details.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         details,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Color.lerp(
-                            scheme.onSurfaceVariant,
-                            scheme.primary,
-                            0.35,
-                          ),
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -558,27 +573,9 @@ class _TxCard extends ConsumerWidget {
                 children: [
                   Text(
                     '$sign${Money.format(entry.amountPaise)}',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: typeColor,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: amountColor,
                       fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: typeColor.withValues(alpha: isDark ? 0.22 : 0.15),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Text(
-                      tag,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: typeColor,
-                        fontWeight: FontWeight.w600,
-                      ),
                     ),
                   ),
                 ],
@@ -610,3 +607,8 @@ class _TxCard extends ConsumerWidget {
     );
   }
 }
+
+/// Total spent on a day (expenses only).
+int _daySpend(List<Entry> entries) => entries
+    .where((e) => e.type == EntryType.expense)
+    .fold(0, (sum, e) => sum + e.amountPaise);

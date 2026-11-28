@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../design/surface.dart';
+
 /// The hero card used at the top of Budgets, Goals, Analytics, and Reports.
 ///
 /// Adapts seamlessly to both light and dark themes using the same surface-gradient
@@ -42,27 +44,31 @@ class HeroCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            scheme.surfaceContainerHigh.withValues(alpha: isDark ? 0.75 : 0.85),
-            Color.lerp(
-              scheme.surfaceContainerHigh,
-              accent,
-              isDark ? 0.08 : 0.07,
-            )!.withValues(alpha: isDark ? 0.75 : 0.85),
-          ],
+          colors: isDark
+              ? [
+                  scheme.surfaceContainerHigh.withValues(alpha: 0.75),
+                  Color.lerp(
+                    scheme.surfaceContainerHigh,
+                    accent,
+                    0.08,
+                  )!.withValues(alpha: 0.75),
+                ]
+              : [Colors.white, Color.lerp(Colors.white, accent, 0.06)!],
         ),
         border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: isDark ? 0.25 : 0.35),
+          color: isDark
+              ? scheme.outlineVariant.withValues(alpha: 0.25)
+              : scheme.cardBorder,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? accent.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 24,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : scheme.cardShadow,
       ),
       child: Stack(
         children: [
@@ -70,11 +76,7 @@ class HeroCard extends StatelessWidget {
           Positioned(
             right: -60,
             top: -70,
-            child: _Glow(
-              size: 220,
-              color: accent,
-              alpha: isDark ? 0.25 : 0.08,
-            ),
+            child: _Glow(size: 220, color: accent, alpha: isDark ? 0.25 : 0.08),
           ),
           Positioned(
             left: -40,

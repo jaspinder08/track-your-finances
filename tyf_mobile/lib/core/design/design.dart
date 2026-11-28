@@ -11,3 +11,4 @@ export 'icon_badge.dart';
 export 'motion.dart';
 export 'section_header.dart';
 export 'tokens.dart';
+export 'surface.dart';

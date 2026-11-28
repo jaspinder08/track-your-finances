@@ -215,6 +215,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   /// Validates and saves. With [another], clears the form and stays open.
+  bool _done = false;
+
   Future<void> _save({bool another = false}) async {
     if (_saving || !_formKey.currentState!.validate()) {
       HapticFeedback.heavyImpact(); // something's missing
@@ -262,7 +264,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       });
       _amountFocus.requestFocus();
     } else {
-      Navigator.pop(context, draft);
+      // Brief "saved" tick on the button before closing.
+      setState(() => _done = true);
+      await Future<void>.delayed(const Duration(milliseconds: 420));
+      if (mounted) Navigator.pop(context, draft);
     }
   }
 
@@ -408,9 +413,29 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                                   horizontal: 24,
                                 ),
                               ),
-                              onPressed: _saving ? null : _save,
-                              icon: const Icon(AppIcons.checkRounded, size: 20),
-                              label: const Text('Save'),
+                              // Stays enabled-looking while showing "Saved".
+                              onPressed: _done
+                                  ? () {}
+                                  : (_saving ? null : _save),
+                              icon: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 220),
+                                transitionBuilder: (c, a) =>
+                                    ScaleTransition(scale: a, child: c),
+                                child: Icon(
+                                  _done
+                                      ? AppIcons.checkCircleOutlineRounded
+                                      : AppIcons.checkRounded,
+                                  key: ValueKey(_done),
+                                  size: 20,
+                                ),
+                              ),
+                              label: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 220),
+                                child: Text(
+                                  _done ? 'Saved' : 'Save',
+                                  key: ValueKey(_done),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -898,8 +923,13 @@ class _TypeChips extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: t == selected
                         ? scheme.primary
+                        : scheme.isLight
+                        ? Colors.white
                         : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(12),
+                    border: t != selected && scheme.isLight
+                        ? Border.all(color: scheme.cardBorder)
+                        : null,
                   ),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -1054,14 +1084,15 @@ class _CategoryField extends FormField<CategoryOption> {
              children: [
                Container(
                  decoration: BoxDecoration(
-                   color: scheme.surfaceContainerHighest.withValues(
-                     alpha: 0.35,
-                   ),
+                   color: scheme.isLight
+                       ? Colors.white
+                       : scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                   boxShadow: scheme.cardShadow,
                    borderRadius: BorderRadius.circular(12),
                    border: Border.all(
                      color: field.hasError && selected == null
                          ? scheme.error
-                         : scheme.outlineVariant.withValues(alpha: 0.3),
+                         : scheme.cardBorder,
                    ),
                  ),
                  child: Column(
@@ -1473,14 +1504,13 @@ class _TransferCard extends FormField<void> {
                  padding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
                  clipBehavior: Clip.antiAlias,
                  decoration: BoxDecoration(
-                   color: scheme.surfaceContainerHighest.withValues(
-                     alpha: 0.35,
-                   ),
+                   color: scheme.isLight
+                       ? Colors.white
+                       : scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                   boxShadow: scheme.cardShadow,
                    borderRadius: BorderRadius.circular(12),
                    border: Border.all(
-                     color: field.hasError
-                         ? scheme.error
-                         : scheme.outlineVariant.withValues(alpha: 0.3),
+                     color: field.hasError ? scheme.error : scheme.cardBorder,
                    ),
                  ),
                  child: Column(

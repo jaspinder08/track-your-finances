@@ -60,26 +60,22 @@ class AppDrawer extends ConsumerWidget {
           borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             child: Row(
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: (tint ?? scheme.primary).withValues(alpha: 0.14),
-                    border: Border.all(
-                      color: scheme.outlineVariant.withValues(alpha: 0.2),
-                    ),
+                SizedBox(
+                  width: 32,
+                  child: Icon(
+                    icon,
+                    color: tint ?? scheme.onSurfaceVariant,
+                    size: 22,
                   ),
-                  child: Icon(icon, color: tint ?? scheme.onSurface, size: 22),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     label,
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: tint,
                     ),
@@ -199,7 +195,7 @@ class AppDrawer extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Material(
-                  color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+                  color: scheme.cardFill(0.6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                     side: BorderSide(
@@ -352,10 +348,9 @@ class AppDrawer extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
-                    color: scheme.surfaceContainerHigh.withValues(alpha: 0.5),
-                    border: Border.all(
-                      color: scheme.outlineVariant.withValues(alpha: 0.2),
-                    ),
+                    color: scheme.cardFill(0.5),
+                    border: Border.all(color: scheme.cardBorder),
+                    boxShadow: scheme.cardShadow,
                   ),
                   child: Row(
                     children: [

@@ -139,15 +139,18 @@ class _Panel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            scheme.surfaceContainerHigh.withValues(alpha: 0.75),
-            Color.lerp(
-              scheme.surfaceContainerHigh,
-              scheme.primary,
-              0.08,
-            )!.withValues(alpha: 0.75),
+            scheme.cardFill(0.75),
+            scheme.isLight
+                ? Color.lerp(Colors.white, scheme.primary, 0.035)!
+                : Color.lerp(
+                    scheme.surfaceContainerHigh,
+                    scheme.primary,
+                    0.08,
+                  )!.withValues(alpha: 0.75),
           ],
         ),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,11 +194,10 @@ class _PeriodSwitch extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+        color: scheme.cardFill(0.7),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
       child: Row(
         children: [
@@ -295,9 +297,7 @@ class _SavingsCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       saved >= 0 ? 'Your Savings' : 'Overspent',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: dim,
-                      ),
+                      style: theme.textTheme.titleSmall?.copyWith(color: dim),
                     ),
                   ],
                 ),
@@ -328,18 +328,14 @@ class _SavingsCard extends StatelessWidget {
                         TextSpan(text: ' compared to $than'),
                       ],
                     ),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: dim,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: dim),
                   )
                 else
                   Text(
                     data.isEmpty
                         ? 'Nothing recorded yet'
                         : 'Keep going to see how you compare',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: dim,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: dim),
                   ),
               ],
             ),
@@ -452,12 +448,11 @@ class _TotalTile extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: 0.14),
-              scheme.surfaceContainerHigh.withValues(alpha: 0.6),
-            ],
+            colors: [color.withValues(alpha: 0.14), scheme.cardFill(0.6)],
           ),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: color.withValues(alpha: scheme.isLight ? 0.22 : 0.3),
+          ),
         ),
         child: Row(
           children: [

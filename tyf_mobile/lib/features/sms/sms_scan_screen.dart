@@ -1,3 +1,4 @@
+import '../../core/design/surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -344,7 +345,7 @@ class _FoundTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+        color: scheme.cardFill(0.6),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isNew && !added

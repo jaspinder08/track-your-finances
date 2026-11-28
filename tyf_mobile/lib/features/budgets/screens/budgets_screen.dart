@@ -248,12 +248,7 @@ class _Stat extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: t.labelSmall?.copyWith(
-                    color: dim,
-                  ),
-                ),
+                Text(label, style: t.labelSmall?.copyWith(color: dim)),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
@@ -372,8 +367,6 @@ class _SectionTitle extends StatelessWidget {
     final scheme = theme.colorScheme;
     return Row(
       children: [
-        Icon(AppIcons.gridViewRounded, color: scheme.primary, size: 22),
-        const SizedBox(width: 8),
         Expanded(
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -381,7 +374,7 @@ class _SectionTitle extends StatelessWidget {
             child: Text(
               'Category Budgets',
               maxLines: 1,
-              style: theme.textTheme.titleMedium?.copyWith(fontSize: 19),
+              style: theme.textTheme.titleMedium,
             ),
           ),
         ),

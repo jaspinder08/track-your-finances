@@ -59,6 +59,7 @@ class FloatingNavBar extends StatelessWidget {
       );
     }
 
+    final light = scheme.brightness == Brightness.light;
     return SafeArea(
       top: false,
       child: Padding(
@@ -72,17 +73,34 @@ class FloatingNavBar extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color.lerp(scheme.surfaceContainerHigh, scheme.primary, 0.10)!,
-                Color.lerp(scheme.surfaceContainer, scheme.primary, 0.04)!,
-              ],
+              colors: light
+                  ? const [Colors.white, Color(0xFFFBFBFD)]
+                  : [
+                      Color.lerp(
+                        scheme.surfaceContainerHigh,
+                        scheme.primary,
+                        0.10,
+                      )!,
+                      Color.lerp(
+                        scheme.surfaceContainer,
+                        scheme.primary,
+                        0.04,
+                      )!,
+                    ],
             ),
             borderRadius: BorderRadius.circular(36),
-            border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
+            border: Border.all(
+              color: light
+                  ? const Color(0xFFE5E8EE)
+                  : scheme.primary.withValues(alpha: 0.22),
+            ),
             boxShadow: [
               BoxShadow(
-                color: scheme.primary.withValues(alpha: 0.16),
-                blurRadius: 28,
+                color: light
+                    ? const Color(0x1A1B2333)
+                    : scheme.primary.withValues(alpha: 0.16),
+                blurRadius: light ? 24 : 28,
+                offset: light ? const Offset(0, 8) : Offset.zero,
                 spreadRadius: -4,
               ),
             ],

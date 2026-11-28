@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// The app's backdrop, behind every screen: in dark mode, a deep near-black
 /// tinted with the accent; in light mode, a crisp bright canvas tinted softly.
 /// Includes soft glows of the accent (and a neighbouring hue) from the
-/// corners, and a faint dot grid. Changing the accent in Settings
+/// corners, Changing the accent in Settings
 /// changes the whole mood, not just the buttons.
 ///
 /// Scaffolds are transparent (see AppTheme), so pages show this through.
@@ -35,9 +35,6 @@ class AppBackground extends StatelessWidget {
         );
 
     final base = isDark ? backgroundBase(accent) : lightBackgroundBase(accent);
-    final dotColor = isDark
-        ? Colors.white.withValues(alpha: 0.035)
-        : Colors.black.withValues(alpha: 0.035);
 
     return Stack(
       fit: StackFit.expand,
@@ -53,7 +50,7 @@ class AppBackground extends StatelessWidget {
                     const Alignment(-1.1, -1.05),
                     1.15,
                     accent,
-                    isDark ? 0.30 : 0.12,
+                    isDark ? 0.20 : 0.06,
                   ),
                 ),
               ),
@@ -63,7 +60,7 @@ class AppBackground extends StatelessWidget {
                     const Alignment(1.25, 0.15),
                     0.95,
                     partner,
-                    isDark ? 0.16 : 0.07,
+                    isDark ? 0.09 : 0.03,
                   ),
                 ),
               ),
@@ -73,11 +70,10 @@ class AppBackground extends StatelessWidget {
                     const Alignment(-0.5, 1.35),
                     0.9,
                     accent,
-                    isDark ? 0.12 : 0.05,
+                    isDark ? 0.07 : 0.02,
                   ),
                 ),
               ),
-              CustomPaint(painter: _DotGrid(dotColor)),
             ],
           ),
         ),
@@ -92,27 +88,5 @@ class AppBackground extends StatelessWidget {
 
   /// The base colour under the glows in light mode.
   static Color lightBackgroundBase(Color accent) =>
-      Color.lerp(const Color(0xFFF7F8FC), accent, 0.02)!;
-}
-
-/// A barely-there dot grid that gives the background texture.
-class _DotGrid extends CustomPainter {
-  const _DotGrid(this.dotColor);
-
-  final Color dotColor;
-  static const _gap = 22.0;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = dotColor;
-    for (var y = _gap / 2; y < size.height; y += _gap) {
-      for (var x = _gap / 2; x < size.width; x += _gap) {
-        canvas.drawCircle(Offset(x, y), 0.9, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DotGrid oldDelegate) =>
-      oldDelegate.dotColor != dotColor;
+      Color.lerp(const Color(0xFFF3F4F7), accent, 0.015)!;
 }

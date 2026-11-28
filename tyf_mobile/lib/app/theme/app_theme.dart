@@ -42,12 +42,18 @@ class AppTheme {
           ? const Color(0xFF1B1B1F)
           : Colors.white,
       // Clean, bright surfaces with a soft hint of the chosen accent
-      surface: tint(0xFFFFFFFF, 0.02),
+      // Crisp white surfaces on a neutral grey scale, barely tinted, so
+      // cards read as clean paper and the accent does the colouring.
+      surface: const Color(0xFFFFFFFF),
       surfaceContainerLowest: const Color(0xFFFFFFFF),
-      surfaceContainerLow: tint(0xFFF7F9FC, 0.025),
-      surfaceContainer: tint(0xFFF0F3F8, 0.035),
-      surfaceContainerHigh: tint(0xFFE8EDF4, 0.045),
-      surfaceContainerHighest: tint(0xFFDFE5EE, 0.055),
+      surfaceContainerLow: tint(0xFFF8F9FB, 0.01),
+      surfaceContainer: tint(0xFFF2F4F7, 0.015),
+      surfaceContainerHigh: tint(0xFFECEFF3, 0.02),
+      surfaceContainerHighest: tint(0xFFE6E9EE, 0.025),
+      onSurface: const Color(0xFF151821),
+      onSurfaceVariant: const Color(0xFF5D6472),
+      outline: const Color(0xFFB9BFCA),
+      outlineVariant: const Color(0xFFDDE1E7),
     );
 
     return ThemeData(
@@ -377,7 +383,7 @@ TextTheme _textTheme() {
     headlineLarge: m(32, FontWeight.w800, ls: -0.8),
     headlineMedium: m(28, FontWeight.w800, ls: -0.6),
     headlineSmall: m(24, FontWeight.w700, ls: -0.4),
-    titleLarge: m(22, FontWeight.w700, ls: -0.3),
+    titleLarge: m(19, FontWeight.w700, ls: -0.3),
     titleMedium: m(16, FontWeight.w700, ls: -0.1),
     titleSmall: m(14, FontWeight.w700),
     bodyLarge: i(16, FontWeight.w400, h: 1.45),

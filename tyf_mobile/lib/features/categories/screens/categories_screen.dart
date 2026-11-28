@@ -247,11 +247,12 @@ class _CategoryCardState extends State<_CategoryCard> {
           colors: [
             active
                 ? Color.lerp(scheme.surfaceContainerHigh, scheme.primary, 0.16)!
-                : scheme.surfaceContainerHigh.withValues(alpha: 0.7),
-            scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+                : scheme.cardFill(0.7),
+            scheme.cardFill(0.7),
           ],
         ),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -450,11 +451,10 @@ class _KindSwitch extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.7),
+        color: scheme.cardFill(0.7),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
       child: Stack(
         children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../design/surface.dart';
 import '../design/app_icons.dart';
 
 // Rows and section headings shared by Settings and Profile.
@@ -44,9 +45,10 @@ class OptionPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+        color: scheme.cardFill(0.6),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
       child: child,
     );
@@ -79,64 +81,54 @@ class OptionRow extends StatelessWidget {
     final scheme = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
-        shape: RoundedRectangleBorder(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+          boxShadow: scheme.cardShadow,
         ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color.withValues(alpha: 0.32),
-                        color.withValues(alpha: 0.14),
+        child: Material(
+          color: scheme.cardFill(0.6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(color: scheme.cardBorder),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 32,
+                    child: Icon(icon, color: color, size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: theme.textTheme.titleSmall),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  child: Icon(
-                    icon,
-                    color: Color.lerp(color, Colors.white, 0.25),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.titleSmall),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (trailing != null)
-                  trailing!
-                else if (showChevron && onTap != null)
-                  Icon(
-                    AppIcons.chevronRightRounded,
-                    color: scheme.onSurfaceVariant,
-                  ),
-              ],
+                  const SizedBox(width: 8),
+                  if (trailing != null)
+                    trailing!
+                  else if (showChevron && onTap != null)
+                    Icon(
+                      AppIcons.chevronRightRounded,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

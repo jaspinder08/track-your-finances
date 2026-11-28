@@ -5,6 +5,7 @@ import '../../core/utils/money.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_controller.dart';
 import '../../core/widgets/round_icon_button.dart';
+import '../../core/design/surface.dart';
 import '../../core/design/app_icons.dart';
 
 /// Top bar shared by the main tabs: menu, balance pill, reports shortcut.
@@ -76,10 +77,16 @@ class TopBar extends ConsumerWidget {
                 vertical: compact ? 4 : 8,
               ),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.6,
-                ),
+                color: theme.colorScheme.isLight
+                    ? Colors.white
+                    : theme.colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.6,
+                      ),
                 borderRadius: BorderRadius.circular(28),
+                border: theme.colorScheme.isLight
+                    ? Border.all(color: theme.colorScheme.cardBorder)
+                    : null,
+                boxShadow: theme.colorScheme.cardShadow,
               ),
               child: Column(
                 children: [
