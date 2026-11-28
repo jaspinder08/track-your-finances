@@ -6,6 +6,7 @@ import '../../core/design/motion.dart';
 
 import '../../features/budgets/screens/budgets_screen.dart';
 import '../../features/budgets/widgets/budget_sheet.dart';
+import '../../features/calendar/calendar_month_provider.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/budgets/data/budget_repository.dart';
 import '../../core/navigation/page_route.dart';
@@ -133,6 +134,18 @@ class _AppShellState extends ConsumerState<AppShell>
                   .values
                   .fold(0, (s, v) => s + v),
               compact: _scrolled[_index],
+              selectedMonth: _index == 0
+                  ? ref.watch(selectedMonthProvider)
+                  : null,
+              onMonthTap: _index == 0
+                  ? () => showMonthPickerSheet(
+                      context,
+                      selected: ref.read(selectedMonthProvider),
+                      onSelected: ref
+                          .read(selectedMonthProvider.notifier)
+                          .setMonth,
+                    )
+                  : null,
               onScanSms: _index == 0
                   ? () => Navigator.of(
                       context,

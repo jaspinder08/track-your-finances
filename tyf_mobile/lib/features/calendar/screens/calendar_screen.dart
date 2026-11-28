@@ -3,47 +3,64 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/shell/top_bar.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/navigation/page_route.dart';
 import '../../../core/utils/money.dart';
+import '../../accounts/account_balances.dart';
+import '../../accounts/accounts_screen.dart';
+import '../../transactions/data/entry.dart';
 import '../../transactions/data/entry_repository.dart';
 import '../../transactions/data/transaction_options.dart';
-import '../../transactions/screens/add_transaction_screen.dart';
 import '../../../core/design/surface.dart';
+import '../calendar_month_provider.dart';
 import '../widgets/day_entries_sheet.dart';
 
-/// Home tab: month summary cards and a month calendar. Tap a day to see
-/// its entries, or to add one if it's empty.
-class CalendarScreen extends ConsumerStatefulWidget {
+/// Home tab: month summary header, category spend bar, and month calendar.
+/// Tap any day to open its bottom sheet.
+class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
 
-  @override
-  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
-}
+  void _open(BuildContext context, DateTime day) =>
+      showDayEntriesSheet(context, day);
 
-class _CalendarScreenState extends ConsumerState<CalendarScreen> {
-  late DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
-
-  void _shift(int months) {
-    HapticFeedback.selectionClick();
-    setState(() => _month = DateTime(_month.year, _month.month + months));
+  static int _computeStreak(Map<DateTime, List<Entry>> byDay, DateTime today) {
+    var cursor = byDay.containsKey(today)
+        ? today
+        : today.subtract(const Duration(days: 1));
+    var streak = 0;
+    while (byDay.containsKey(cursor) && byDay[cursor]!.isNotEmpty) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
   }
 
-  void _open(DateTime day, List<Entry> entries) => entries.isEmpty
-      ? showAddTransactionScreen(context, initialDate: day)
-      : showDayEntriesSheet(context, day);
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final light = scheme.isLight;
+    final month = ref.watch(selectedMonthProvider);
+    final entries = ref.watch(entriesProvider).value ?? const <Entry>[];
     final byDay = ref.watch(entriesByDayProvider);
     final today = DateUtils.dateOnly(DateTime.now());
+    final isCurrentMonth =
+        month.year == today.year && month.month == today.month;
+    final asOf = isCurrentMonth
+        ? today
+        : DateTime(month.year, month.month + 1, 0);
+    final balancePaise = accountBalances(
+      entries,
+      asOf,
+    ).values.fold(0, (s, v) => s + v);
+    final hidden = ref.watch(hideBalanceProvider);
 
     // Grid: Monday on/before the 1st to Sunday on/after the last day.
-    final first = DateTime(_month.year, _month.month, 1);
+    final first = DateTime(month.year, month.month, 1);
     final start = first.subtract(Duration(days: first.weekday - 1));
-    final last = DateTime(_month.year, _month.month + 1, 0);
+    final last = DateTime(month.year, month.month + 1, 0);
     final end = last.add(Duration(days: 7 - last.weekday));
     final days = List.generate(
       end.difference(start).inDays + 1,
@@ -51,95 +68,166 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
 
     var monthIncome = 0, monthExpense = 0, maxDayExpense = 0;
+    final categorySpend = <String, int>{};
     for (final e in byDay.entries) {
-      if (e.key.year != _month.year || e.key.month != _month.month) continue;
+      if (e.key.year != month.year || e.key.month != month.month) continue;
       var dayExpense = 0;
       for (final x in e.value) {
         if (x.type == EntryType.income) monthIncome += x.amountPaise;
-        if (x.type == EntryType.expense) dayExpense += x.amountPaise;
+        if (x.type == EntryType.expense) {
+          dayExpense += x.amountPaise;
+          final cat = x.data.category ?? 'Other';
+          categorySpend[cat] = (categorySpend[cat] ?? 0) + x.amountPaise;
+        }
       }
       monthExpense += dayExpense;
       if (dayExpense > maxDayExpense) maxDayExpense = dayExpense;
     }
-    final isThisMonth =
-        _month.year == today.year && _month.month == today.month;
-    final daysCounted = _month.isAfter(today)
-        ? 0
-        : isThisMonth
-        ? today.day
-        : last.day;
 
-    Widget roundButton(IconData icon, String tip, VoidCallback onTap) =>
-        IconButton(
-          tooltip: tip,
-          color: scheme.onSurface,
-          onPressed: onTap,
-          icon: Icon(icon),
-        );
+    final streak = _computeStreak(byDay, today);
+    final sortedCategories = categorySpend.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return LayoutBuilder(
       builder: (context, box) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Month: ‹ November 2026 ›
-            Row(
-              children: [
-                roundButton(
-                  AppIcons.chevronLeftRounded,
-                  'Previous month',
-                  () => _shift(-1),
-                ),
-                Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: Text(
-                      DateFormat('MMMM y').format(_month),
-                      key: ValueKey(_month),
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleLarge,
-                    ),
-                  ),
-                ),
-                roundButton(
-                  AppIcons.chevronRightRounded,
-                  'Next month',
-                  () => _shift(1),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            if (byDay.isEmpty)
-              const _FirstRunHint()
-            else
-              Row(
+            // Summary header: Balance line, Spent in <Month>, big total, earned + streak
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _StatCard(
-                    label: 'Income',
-                    value: Money.format(monthIncome),
-                    icon: AppIcons.southWestRounded,
-                    color: FinanceColors.incomeOf(context),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Navigator.of(
+                          context,
+                        ).push(appPageRoute<void>(const AccountsScreen())),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Balance',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              hidden
+                                  ? '₹ • • • • •'
+                                  : '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: balancePaise < 0
+                                    ? FinanceColors.expenseOf(context)
+                                    : scheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkResponse(
+                        radius: 16,
+                        onTap: () =>
+                            ref.read(hideBalanceProvider.notifier).toggle(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            hidden
+                                ? AppIcons.visibilityOffOutlined
+                                : AppIcons.visibilityOutlined,
+                            size: 15,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  _StatCard(
-                    label: 'Spent',
-                    value: Money.format(monthExpense),
-                    icon: AppIcons.northEastRounded,
-                    color: FinanceColors.expenseOf(context),
-                  ),
-                  const SizedBox(width: 10),
-                  _StatCard(
-                    label: 'Per day',
-                    value: Money.format(
-                      daysCounted == 0 ? 0 : monthExpense ~/ daysCounted,
+                  const SizedBox(height: 10),
+                  Text(
+                    'Spent in ${DateFormat('MMMM').format(month)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
                     ),
-                    icon: AppIcons.todayRounded,
-                    color: scheme.primary,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    Money.format(monthExpense),
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                      height: 1.15,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text(
+                        '+${Money.format(monthIncome)} earned',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: FinanceColors.incomeOf(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (streak > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(
+                              alpha: light ? 0.10 : 0.22,
+                            ),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                AppIcons.trackChangesRounded,
+                                size: 13,
+                                color: scheme.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$streak-day streak',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _CategorySpendBar(
+                    categories: sortedCategories,
+                    totalExpense: monthExpense,
                   ),
                 ],
               ),
+            ),
+            if (byDay.isEmpty) ...[
+              const SizedBox(height: 14),
+              const _FirstRunHint(),
+            ],
             const SizedBox(height: 14),
-            // The month grid, on its own panel.
+            // The month grid, on its own panel (unchanged).
             Container(
               padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
               decoration: BoxDecoration(
@@ -175,9 +263,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   LayoutBuilder(
                     builder: (context, grid) {
                       final rows = (days.length / 7).ceil();
-                      // Space left for the grid (header ≈ 62, stat cards
-                      // ≈ 92, panel + weekday row ≈ 60, nav bar ≈ 110).
-                      final avail = box.maxHeight - 62 - 92 - 60 - 110;
+                      // Space left for the grid (summary ≈ 140, panel +
+                      // weekday row ≈ 60, nav bar ≈ 110).
+                      final avail = box.maxHeight - 140 - 60 - 110;
                       final cellW = (grid.maxWidth - 6 * 6) / 7;
                       final cellH = ((avail - 6 * (rows - 1)) / rows)
                           .clamp(cellW * 1.1, cellW * 1.9)
@@ -202,11 +290,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           final expense = total(EntryType.expense);
                           return _DayCell(
                             day: day,
-                            inMonth: day.month == _month.month,
+                            inMonth: day.month == month.month,
                             isToday: day == today,
                             income: total(EntryType.income),
                             expense: expense,
-                            heat: day.month == _month.month && maxDayExpense > 0
+                            heat: day.month == month.month && maxDayExpense > 0
                                 ? expense / maxDayExpense
                                 : 0,
                             hasTransfer: entries.any(
@@ -214,7 +302,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             ),
                             onTap: () {
                               HapticFeedback.selectionClick();
-                              _open(day, entries);
+                              _open(context, day);
                             },
                           );
                         },
@@ -231,90 +319,99 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 }
 
-/// One of the three summary cards: tinted, with a soft wave at the foot.
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
+/// Colourful segmented spending bar + legend dots for top categories.
+class _CategorySpendBar extends StatelessWidget {
+  const _CategorySpendBar({
+    required this.categories,
+    required this.totalExpense,
   });
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
+
+  final List<MapEntry<String, int>> categories;
+  final int totalExpense;
+
+  static const _palette = [
+    Color(0xFFF06A35), // coral/orange
+    Color(0xFFE5A01D), // amber
+    Color(0xFF1F9EB3), // teal
+    Color(0xFFE5457A), // pink
+    Color(0xFF8B5CF6), // violet
+  ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Expanded(
-      child: Container(
-        height: 78,
-        clipBehavior: Clip.antiAlias,
+
+    if (totalExpense <= 0 || categories.isEmpty) {
+      return Container(
+        height: 8,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              color.withValues(alpha: scheme.isLight ? 0.10 : 0.16),
-              scheme.cardFill(0.6),
-            ],
-          ),
-          border: Border.all(
-            color: color.withValues(alpha: scheme.isLight ? 0.22 : 0.3),
-          ),
+          color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(100),
         ),
-        child: Stack(
+      );
+    }
+
+    final top = categories.take(4).toList();
+    final rest = categories.skip(4).fold<int>(0, (s, e) => s + e.value);
+    final segments = <MapEntry<String, int>>[
+      ...top,
+      if (rest > 0) MapEntry('Other', rest),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 8, 6),
-              child: Row(
+            for (var i = 0; i < segments.length; i++) ...[
+              if (i > 0) const SizedBox(width: 3),
+              Expanded(
+                flex: segments[i].value.clamp(1, 1 << 30),
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _palette[i % _palette.length],
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 14,
+          runSpacing: 4,
+          children: [
+            for (var i = 0; i < top.length; i++)
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 34,
-                    height: 34,
+                    width: 7,
+                    height: 7,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: color.withValues(alpha: 0.18),
+                      color: _palette[i % _palette.length],
                     ),
-                    child: Icon(icon, size: 18, color: color),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            value,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 5),
+                  Text(
+                    top[i].key,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ),
           ],
         ),
-      ),
+      ],
     );
   }
 }
-
-/// A soft rising wave along the bottom of a stat card.
 
 /// One day tile. Spending days glow (stronger for heavier days), today
 /// has an accent outline, the selected day a filled accent tint.

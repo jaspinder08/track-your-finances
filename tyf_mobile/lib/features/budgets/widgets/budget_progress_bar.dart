@@ -33,7 +33,7 @@ class BudgetProgressBar extends StatelessWidget {
       duration: const Duration(milliseconds: 900),
       curve: Curves.easeOutCubic,
       builder: (context, v, _) => ClipRRect(
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(100),
         child: LinearProgressIndicator(
           value: v,
           minHeight: height,

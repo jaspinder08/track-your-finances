@@ -41,14 +41,17 @@ class BudgetsView extends ConsumerWidget {
       return _Empty(topSpend: unbudgeted.map((e) => e.key).take(3).toList());
     }
 
+    // Sort by % used descending so over-limit / warning categories appear first.
+    final sorted = [...progress]..sort((a, b) => b.ratio.compareTo(a.ratio));
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
       children: [
-        FadeSlideIn(child: _Overview(progress: progress)),
-        const SizedBox(height: 24),
+        FadeSlideIn(child: _Overview(progress: sorted)),
+        const SizedBox(height: 22),
         const _SectionTitle(),
-        const SizedBox(height: 12),
-        for (final (i, p) in progress.indexed) ...[
+        const SizedBox(height: 10),
+        for (final (i, p) in sorted.indexed) ...[
           FadeSlideIn(
             index: i + 1,
             child: _BudgetCard(p: p),
@@ -58,16 +61,32 @@ class BudgetsView extends ConsumerWidget {
         if (unbudgeted.isNotEmpty) ...[
           const SizedBox(height: 14),
           const SectionHeader('Spending without a budget'),
-          for (final e in unbudgeted)
-            _UnbudgetedTile(name: e.key, paise: e.value),
+          AppCard(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                for (final (i, e) in unbudgeted.indexed) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      indent: 68,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outlineVariant.withValues(alpha: 0.25),
+                    ),
+                  _UnbudgetedTile(name: e.key, paise: e.value),
+                ],
+              ],
+            ),
+          ),
         ],
       ],
     );
   }
 }
 
-/// The month card: what's left to spend, a "% used" ring, and a band of
-/// Budgeted · Spent · Per day.
+/// The month card: what's left to spend, pace pill, a "% used" ring, and a
+/// clean Budgeted · Spent · Per day band.
 class _Overview extends StatelessWidget {
   const _Overview({required this.progress});
   final List<BudgetProgress> progress;
@@ -84,16 +103,29 @@ class _Overview extends StatelessWidget {
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
     final daysLeft = daysInMonth - now.day + 1;
     final perDay = left > 0 ? left ~/ daysLeft : 0;
+    final monthElapsed = now.day / daysInMonth;
     final isDark = theme.brightness == Brightness.dark;
     final on = scheme.onSurface;
     final dim = scheme.onSurfaceVariant;
+
+    final (paceLabel, paceColor) = ratio > 1
+        ? ('Over budget', FinanceColors.expenseOf(context))
+        : ratio > monthElapsed + 0.08
+        ? ('Spending fast', budgetWarning)
+        : ('On track', FinanceColors.incomeOf(context));
+
+    final ringColor = ratio > 1
+        ? FinanceColors.expenseOf(context)
+        : ratio >= 0.8
+        ? budgetWarning
+        : scheme.primary;
 
     return HeroCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 18, 18),
+            padding: const EdgeInsets.fromLTRB(20, 18, 18, 18),
             child: Row(
               children: [
                 Expanded(
@@ -102,49 +134,58 @@ class _Overview extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: scheme.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              AppIcons.eventRounded,
-                              size: 20,
-                              color: scheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
                           Flexible(
                             child: Text(
                               '${DateFormat.MMMM().format(now)} Budget',
                               overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                color: scheme.primary,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: dim,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: paceColor.withValues(
+                                alpha: isDark ? 0.20 : 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              paceLabel,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: paceColor,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: AnimatedMoney(
                           left.abs(),
                           style: theme.textTheme.displaySmall?.copyWith(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
                             color: on,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         left >= 0
                             ? 'left to spend this month'
                             : 'over budget this month',
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: left >= 0
                               ? dim
                               : FinanceColors.expenseOf(context),
@@ -153,19 +194,14 @@ class _Overview extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: 90,
-                  margin: const EdgeInsets.symmetric(horizontal: 14),
-                  color: scheme.outlineVariant.withValues(alpha: 0.35),
-                ),
-                _Ring(ratio: ratio, color: scheme.primary),
+                const SizedBox(width: 14),
+                _Ring(ratio: ratio, color: ringColor),
               ],
             ),
           ),
-          // Stats band.
+          // Clean 3-column stats band.
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerHighest.withValues(
                 alpha: isDark ? 0.35 : 0.45,
@@ -179,25 +215,16 @@ class _Overview extends StatelessWidget {
             child: IntrinsicHeight(
               child: Row(
                 children: [
-                  _Stat(
-                    icon: AppIcons.accountBalanceWalletOutlined,
-                    tint: scheme.primary,
-                    label: 'Budgeted',
-                    value: Money.format(limit),
-                  ),
+                  _Stat(label: 'Budgeted', value: Money.format(limit)),
                   _Divider(),
                   _Stat(
-                    icon: AppIcons.accountBalanceWalletOutlined,
-                    tint: FinanceColors.expenseOf(context),
                     label: 'Spent',
                     value: Money.format(spent),
                     valueColor: FinanceColors.expenseOf(context),
                   ),
                   _Divider(),
                   _Stat(
-                    icon: AppIcons.todayRounded,
-                    tint: FinanceColors.incomeOf(context),
-                    label: perDay > 0 ? 'Per day' : 'Days left',
+                    label: perDay > 0 ? 'Safe / day' : 'Days left',
                     value: perDay > 0 ? Money.format(perDay) : '$daysLeft',
                     valueColor: FinanceColors.incomeOf(context),
                   ),
@@ -222,14 +249,10 @@ class _Divider extends StatelessWidget {
 
 class _Stat extends StatelessWidget {
   const _Stat({
-    required this.icon,
-    required this.tint,
     required this.label,
     required this.value,
     this.valueColor,
   });
-  final IconData icon;
-  final Color tint;
   final String label;
   final String value;
   final Color? valueColor;
@@ -238,28 +261,23 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final on = scheme.onSurface;
-    final dim = scheme.onSurfaceVariant;
     return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 26, color: tint),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: t.labelSmall?.copyWith(color: dim)),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: t.titleSmall?.copyWith(color: valueColor ?? on),
-                  ),
-                ),
-              ],
+          Text(
+            label,
+            style: t.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 3),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: t.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: valueColor ?? scheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -268,7 +286,7 @@ class _Stat extends StatelessWidget {
   }
 }
 
-/// Circular "% used" ring with a gradient arc.
+/// Circular "% used" ring with a theme-aware track.
 class _Ring extends StatelessWidget {
   const _Ring({required this.ratio, required this.color});
   final double ratio;
@@ -276,19 +294,25 @@ class _Ring extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final trackColor = scheme.outlineVariant.withValues(
+      alpha: isDark ? 0.25 : 0.45,
+    );
     return TweenAnimationBuilder<double>(
       key: ValueKey(TabVisit.of(context)),
       tween: Tween(begin: 0, end: ratio),
       duration: const Duration(milliseconds: 900),
       curve: Curves.easeOutCubic,
       builder: (context, v, _) => SizedBox(
-        width: 104,
-        height: 104,
+        width: 92,
+        height: 92,
         child: CustomPaint(
           painter: _RingPainter(
             v.clamp(0, 1).toDouble(),
-            ratio > 1 ? FinanceColors.expenseOf(context) : accent,
+            color,
+            trackColor,
           ),
           child: Center(
             child: Column(
@@ -296,14 +320,15 @@ class _Ring extends StatelessWidget {
               children: [
                 Text(
                   '${(v * 100).round()}%',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(color: color),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 Text(
                   'used',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: color.withValues(alpha: 0.75),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -316,13 +341,14 @@ class _Ring extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter(this.value, this.color);
+  _RingPainter(this.value, this.color, this.trackColor);
   final double value;
   final Color color;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    const stroke = 11.0;
+    const stroke = 9.5;
     final r = (Offset.zero & size).deflate(stroke / 2);
     canvas.drawArc(
       r,
@@ -330,24 +356,18 @@ class _RingPainter extends CustomPainter {
       2 * math.pi,
       false,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.1)
+        ..color = trackColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = stroke,
     );
     if (value <= 0) return;
-    final light = Color.lerp(color, Colors.white, 0.45)!;
     canvas.drawArc(
       r,
       -math.pi / 2,
       2 * math.pi * value,
       false,
       Paint()
-        ..shader = SweepGradient(
-          startAngle: -math.pi / 2,
-          endAngle: 3 * math.pi / 2,
-          colors: [light, color, light],
-          transform: const GradientRotation(-math.pi / 2),
-        ).createShader(r)
+        ..color = color
         ..style = PaintingStyle.stroke
         ..strokeWidth = stroke
         ..strokeCap = StrokeCap.round,
@@ -356,10 +376,10 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.value != value || old.color != color;
+      old.value != value || old.color != color || old.trackColor != trackColor;
 }
 
-/// "Category Budgets" with a Manage Categories pill.
+/// "Category Budgets" with a clean Manage action.
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle();
 
@@ -370,54 +390,31 @@ class _SectionTitle extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Category Budgets',
-              maxLines: 1,
-              style: theme.textTheme.titleMedium,
+          child: Text(
+            'Category Budgets',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            shape: const StadiumBorder(),
-            side: BorderSide(color: scheme.primary.withValues(alpha: 0.6)),
-            backgroundColor: scheme.primary.withValues(alpha: 0.08),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            minimumSize: const Size(0, 38),
+        TextButton.icon(
+          style: TextButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            foregroundColor: scheme.primary,
           ),
           onPressed: () => Navigator.of(
             context,
           ).push(appPageRoute<void>(const CategoriesScreen())),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(AppIcons.settingsOutlined, size: 17, color: scheme.primary),
-              const SizedBox(width: 6),
-              Text(
-                'Manage Categories',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurface,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Icon(
-                AppIcons.chevronRightRounded,
-                size: 15,
-                color: scheme.onSurfaceVariant,
-              ),
-            ],
-          ),
+          icon: const Icon(AppIcons.settingsOutlined, size: 16),
+          label: const Text('Manage'),
         ),
       ],
     );
   }
 }
 
-/// One category budget: icon tile, name, "₹spent of ₹limit", % used,
-/// and a progress bar. Tap to change the limit.
+/// One category budget: icon tile, name, status pill, % used,
+/// "₹spent of ₹limit" with "₹left left" (or "₹over over"), and a pill bar.
 class _BudgetCard extends StatelessWidget {
   const _BudgetCard({required this.p});
   final BudgetProgress p;
@@ -429,14 +426,15 @@ class _BudgetCard extends StatelessWidget {
     final color = budgetColor(context, p.ratio);
     final name = p.budget.category;
     final pct = (p.ratio * 100).round();
+    final remaining = p.budget.limitPaise - p.spentPaise;
 
     return AppCard(
       onTap: () => showBudgetSheet(context, category: name),
-      radius: 16,
-      padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+      radius: 18,
+      padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          CategoryTile(name: name, glyph: p.option?.emoji ?? '💸', size: 56),
+          CategoryTile(name: name, glyph: p.option?.emoji ?? '💸', size: 48),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -452,7 +450,7 @@ class _BudgetCard extends StatelessWidget {
                               name,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
@@ -467,28 +465,47 @@ class _BudgetCard extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       '$pct%',
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                         color: p.isOver ? color : scheme.onSurface,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${Money.format(p.spentPaise)} of ${Money.format(p.budget.limitPaise)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${Money.format(p.spentPaise)} of ${Money.format(p.budget.limitPaise)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      remaining >= 0
+                          ? '${Money.format(remaining)} left'
+                          : '${Money.format(remaining.abs())} over',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: remaining >= 0
+                            ? scheme.onSurfaceVariant
+                            : FinanceColors.expenseOf(context),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
-                BudgetProgressBar(ratio: p.ratio, color: color, height: 8),
+                BudgetProgressBar(ratio: p.ratio, color: color, height: 7),
               ],
             ),
           ),
-          const SizedBox(width: 6),
-          Icon(AppIcons.chevronRightRounded, color: scheme.onSurfaceVariant),
         ],
       ),
     );
@@ -504,16 +521,23 @@ class _UnbudgetedTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final emoji = ref.watch(categorySetProvider).emojiFor(name) ?? '💸';
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: CategoryTile(name: name, glyph: emoji, size: 44),
-      title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+      leading: CategoryTile(name: name, glyph: emoji, size: 42),
+      title: Text(
+        name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(
+          context,
+        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text('${Money.format(paise)} this month'),
       trailing: FilledButton.tonal(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 36),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          minimumSize: const Size(0, 34),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           visualDensity: VisualDensity.compact,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
         onPressed: () => showBudgetSheet(context, category: name),
         child: const Text('Set budget'),
