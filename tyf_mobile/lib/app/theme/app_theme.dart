@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// Accent colours the user can pick in Settings.
 enum AccentColor {
-  blue('Blue', Color(0xFF3D7BF7)),
+  // Deep enough for white button text (4.8:1).
+  blue('Blue', Color(0xFF2E6BE6)),
   green('Green', Color(0xFF22A861)),
   coral('Coral', Color(0xFFF26B5B)),
   violet('Violet', Color(0xFF7C5CE6)),
@@ -17,10 +20,46 @@ enum AccentColor {
 }
 
 /// Colours with a fixed meaning, the same in every accent.
+///
+/// [income] and [expense] are the bright tones: fills, tints and icons, and
+/// text in dark mode. On light surfaces they fall below 4.5:1, so text and
+/// small marks there use [incomeOf] / [expenseOf], which switch to a deeper
+/// tone (>= 4.9:1 on white and on the light canvas).
 class FinanceColors {
   FinanceColors._();
   static const income = Color(0xFF22A861);
   static const expense = Color(0xFFE5484D);
+
+  /// Text-safe tones for light mode.
+  static const incomeOnLight = Color(0xFF167A40);
+  static const expenseOnLight = Color(0xFFC42F35);
+
+  static bool _light(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light;
+
+  /// Income colour that stays readable on this theme's surfaces.
+  static Color incomeOf(BuildContext context) =>
+      _light(context) ? incomeOnLight : income;
+
+  /// Expense colour that stays readable on this theme's surfaces.
+  static Color expenseOf(BuildContext context) =>
+      _light(context) ? expenseOnLight : expense;
+}
+
+/// Text colour for content on an accent fill: white when it reaches 4.5:1,
+/// otherwise near-black (which passes for every accent in [AccentColor]).
+Color onAccent(Color accent) {
+  const light = Colors.white;
+  const dark = Color(0xFF0A0A0D);
+  double ratio(Color a, Color b) {
+    final la = a.computeLuminance(), lb = b.computeLuminance();
+    return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+  }
+
+  final onLight = ratio(light, accent);
+  if (onLight >= 4.5) return light;
+  final onDark = ratio(dark, accent);
+  return onDark >= onLight ? dark : light;
 }
 
 /// TYF appearance themes: light and dark, with dynamic accent colours
@@ -38,9 +77,7 @@ class AppTheme {
       seedColor: accent.color,
       brightness: brightness,
       primary: accent.color,
-      onPrimary: accent.color.computeLuminance() > 0.45
-          ? const Color(0xFF1B1B1F)
-          : Colors.white,
+      onPrimary: onAccent(accent.color),
       // Clean, bright surfaces with a soft hint of the chosen accent
       // Crisp white surfaces on a neutral grey scale, barely tinted, so
       // cards read as clean paper and the accent does the colouring.
@@ -62,10 +99,15 @@ class AppTheme {
       fontFamily: 'Inter',
       textTheme: _textTheme(),
       scaffoldBackgroundColor: Colors.transparent,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
+        centerTitle: false,
+        foregroundColor: scheme.onSurface,
+        titleTextStyle: _textTheme().titleLarge?.copyWith(
+          color: scheme.onSurface,
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
@@ -171,11 +213,6 @@ class AppTheme {
           (s) => s.contains(WidgetState.selected) ? scheme.primary : null,
         ),
       ),
-      iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
@@ -202,9 +239,7 @@ class AppTheme {
       primary: accent.color,
       // Readable text on the accent in both themes (M3's dark onPrimary
       // is a dark tint that reads poorly on a saturated accent).
-      onPrimary: accent.color.computeLuminance() > 0.45
-          ? const Color(0xFF1B1B1F)
-          : Colors.white,
+      onPrimary: onAccent(accent.color),
       // Sheets, dialogs and the sidebar: dark, with a hint of the accent.
       surface: tint(0xFF141419, 0.05),
       surfaceContainerLow: tint(0xFF18181E, 0.06),
@@ -220,10 +255,15 @@ class AppTheme {
       textTheme: _textTheme(),
       // Transparent so AppBackground shows through every page.
       scaffoldBackgroundColor: Colors.transparent,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
+        centerTitle: false,
+        foregroundColor: scheme.onSurface,
+        titleTextStyle: _textTheme().titleLarge?.copyWith(
+          color: scheme.onSurface,
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surfaceContainerLow,
@@ -329,14 +369,6 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (s) => s.contains(WidgetState.selected) ? scheme.primary : null,
-        ),
-      ),
-      // Flat pill: Material's black elevation shadow looks like a dark box
-      // around the button on this background.
-      // Icon buttons: softened squares, not circles.
-      iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(

@@ -144,3 +144,4 @@ ehthumbs.db
 Thumbs.db
 .venv/
 pythonCrashCourse/
+.claude/

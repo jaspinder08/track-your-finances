@@ -70,15 +70,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         : last.day;
 
     Widget roundButton(IconData icon, String tip, VoidCallback onTap) =>
-        IconButton.filledTonal(
+        IconButton(
           tooltip: tip,
-          style: IconButton.styleFrom(
-            shape: const CircleBorder(),
-            backgroundColor: scheme.surfaceContainerHighest.withValues(
-              alpha: 0.5,
-            ),
-            foregroundColor: scheme.primary,
-          ),
+          color: scheme.onSurface,
           onPressed: onTap,
           icon: Icon(icon),
         );
@@ -124,14 +118,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     label: 'Income',
                     value: Money.format(monthIncome),
                     icon: AppIcons.southWestRounded,
-                    color: FinanceColors.income,
+                    color: FinanceColors.incomeOf(context),
                   ),
                   const SizedBox(width: 10),
                   _StatCard(
                     label: 'Spent',
                     value: Money.format(monthExpense),
                     icon: AppIcons.northEastRounded,
-                    color: FinanceColors.expense,
+                    color: FinanceColors.expenseOf(context),
                   ),
                   const SizedBox(width: 10),
                   _StatCard(
@@ -369,7 +363,7 @@ class _DayCell extends StatelessWidget {
             colors: [
               Color.lerp(
                 scheme.primary,
-                FinanceColors.expense,
+                FinanceColors.expenseOf(context),
                 0.35,
               )!.withValues(alpha: 0.25 + 0.4 * heat),
               FinanceColors.expense.withValues(alpha: 0.12 + 0.3 * heat),
@@ -393,62 +387,81 @@ class _DayCell extends StatelessWidget {
           )
         : Colors.transparent;
 
-    return GestureDetector(
+    // One announcement per day instead of loose numbers: date, what
+    // happened, and what a tap does.
+    final label = [
+      DateFormat('EEEE d MMMM').format(day),
+      if (isToday) 'today',
+      if (expense > 0) 'spent ${Money.format(expense)}',
+      if (income > 0) 'earned ${Money.format(income)}',
+      if (hasTransfer) 'has a transfer',
+      if (!active) 'nothing added',
+    ].join(', ');
+
+    return Semantics(
+      button: true,
+      label: label,
+      hint: active ? 'Show entries' : 'Add an entry',
+      excludeSemantics: true,
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          color: fill,
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: isToday ? 2 : 1),
-          boxShadow: [
-            if (spent && heat > 0.5 && !light)
-              BoxShadow(
-                color: FinanceColors.expense.withValues(alpha: 0.25 * heat),
-                blurRadius: 14,
-                spreadRadius: -4,
-              ),
-          ],
-        ),
-        padding: const EdgeInsets.all(3),
-        // Scales down rather than overflow on small screens.
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${day.day}',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: active || isToday
-                      ? FontWeight.w800
-                      : FontWeight.w600,
-                  color: inMonth
-                      ? scheme.onSurface
-                      : scheme.onSurface.withValues(alpha: 0.3),
-                ),
-              ),
-              if (income > 0)
-                _CellAmount('+${Money.compact(income)}', FinanceColors.income),
-              if (expense > 0)
-                _CellAmount(
-                  '−${Money.compact(expense)}',
-                  spent && !light
-                      ? const Color(0xFFFF8A92)
-                      : light
-                      ? const Color(0xFFC8303A)
-                      : FinanceColors.expense,
-                ),
-              if (hasTransfer)
-                Icon(
-                  AppIcons.swapHorizRounded,
-                  size: 12,
-                  color: scheme.primary,
-                  semanticLabel: 'Transfer',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          decoration: BoxDecoration(
+            color: fill,
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor, width: isToday ? 2 : 1),
+            boxShadow: [
+              if (spent && heat > 0.5 && !light)
+                BoxShadow(
+                  color: FinanceColors.expense.withValues(alpha: 0.25 * heat),
+                  blurRadius: 14,
+                  spreadRadius: -4,
                 ),
             ],
+          ),
+          padding: const EdgeInsets.all(3),
+          // Scales down rather than overflow on small screens.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${day.day}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: active || isToday
+                        ? FontWeight.w800
+                        : FontWeight.w600,
+                    color: inMonth
+                        ? scheme.onSurface
+                        : scheme.onSurface.withValues(alpha: 0.3),
+                  ),
+                ),
+                if (income > 0)
+                  _CellAmount(
+                    '+${Money.compact(income)}',
+                    FinanceColors.incomeOf(context),
+                  ),
+                if (expense > 0)
+                  _CellAmount(
+                    '−${Money.compact(expense)}',
+                    spent && !light
+                        ? const Color(0xFFFF8A92)
+                        : FinanceColors.expenseOf(context),
+                  ),
+                if (hasTransfer)
+                  Icon(
+                    AppIcons.swapHorizRounded,
+                    size: 12,
+                    color: scheme.primary,
+                    semanticLabel: 'Transfer',
+                  ),
+              ],
+            ),
           ),
         ),
       ),

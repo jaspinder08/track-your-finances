@@ -4,9 +4,8 @@ import '../design/surface.dart';
 
 /// The hero card used at the top of Budgets, Goals, Analytics, and Reports.
 ///
-/// Adapts seamlessly to both light and dark themes using the same surface-gradient
-/// and border style as [_SpendingByCategory] / [_Panel], tinted softly with the
-/// active accent color.
+/// A plain card surface: the same fill, hairline and lift as other cards in
+/// light mode, a solid tonal panel in dark mode. No gradient or glow.
 class HeroCard extends StatelessWidget {
   const HeroCard({
     super.key,
@@ -32,88 +31,16 @@ class HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = scheme.primary;
-
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
+        color: scheme.isLight ? Colors.white : scheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(radius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  scheme.surfaceContainerHigh.withValues(alpha: 0.75),
-                  Color.lerp(
-                    scheme.surfaceContainerHigh,
-                    accent,
-                    0.08,
-                  )!.withValues(alpha: 0.75),
-                ]
-              : [Colors.white, Color.lerp(Colors.white, accent, 0.06)!],
-        ),
-        border: Border.all(
-          color: isDark
-              ? scheme.outlineVariant.withValues(alpha: 0.25)
-              : scheme.cardBorder,
-        ),
-        boxShadow: isDark
-            ? [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.12),
-                  blurRadius: 24,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : scheme.cardShadow,
+        border: Border.all(color: scheme.cardBorder),
+        boxShadow: scheme.cardShadow,
       ),
-      child: Stack(
-        children: [
-          // Soft decorative glows for depth.
-          Positioned(
-            right: -60,
-            top: -70,
-            child: _Glow(size: 220, color: accent, alpha: isDark ? 0.25 : 0.08),
-          ),
-          Positioned(
-            left: -40,
-            bottom: -90,
-            child: _Glow(
-              size: 180,
-              color: isDark ? Colors.white : accent,
-              alpha: isDark ? 0.05 : 0.04,
-            ),
-          ),
-          Padding(padding: padding, child: child),
-        ],
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
-}
-
-class _Glow extends StatelessWidget {
-  const _Glow({required this.size, required this.color, required this.alpha});
-  final double size;
-  final Color color;
-  final double alpha;
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-    child: Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withValues(alpha: alpha),
-            color.withValues(alpha: 0),
-          ],
-        ),
-      ),
-    ),
-  );
 }

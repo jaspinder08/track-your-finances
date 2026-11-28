@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>TYF calendar mockup</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+@font-face { font-family: Inter; src: url(../../assets/fonts/Inter-400.ttf); font-weight: 400; }
+@font-face { font-family: Inter; src: url(../../assets/fonts/Inter-500.ttf); font-weight: 500; }
+@font-face { font-family: Inter; src: url(../../assets/fonts/Inter-600.ttf); font-weight: 600; }
+@font-face { font-family: Inter; src: url(../../assets/fonts/Inter-700.ttf); font-weight: 700; }
+@font-face { font-family: Manrope; src: url(../../assets/fonts/Manrope-600.ttf); font-weight: 600; }
+@font-face { font-family: Manrope; src: url(../../assets/fonts/Manrope-700.ttf); font-weight: 700; }
+@font-face { font-family: Manrope; src: url(../../assets/fonts/Manrope-800.ttf); font-weight: 800; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, sans-serif;
+  background: #D9DCE2;
+  width: 1040px;
+  padding: 48px 56px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+.board-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 28px; }
+.board-head h1 { font-family: Manrope; font-weight: 800; font-size: 30px; color: #14161C; letter-spacing: -0.5px; }
+.board-head p { font-size: 15px; color: #4A505C; }
+.swatch { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #14161C; }
+.swatch i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+.phones { display: flex; gap: 48px; justify-content: center; }
+.label { text-align: center; margin-top: 16px; font-size: 14px; font-weight: 600; color: #4A505C; }
+
+.phone {
+  width: 392px; height: 820px; border-radius: 52px; padding: 12px;
+  background: #101114; box-shadow: 0 30px 60px -20px rgba(16,17,20,.45);
+}
+.screen {
+  width: 100%; height: 100%; border-radius: 41px; overflow: hidden; position: relative;
+  background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column;
+}
+
+/* ---- Themes ---- */
+.light {
+  --bg: #F4F5F7; --card: #FFFFFF; --raised: #EEF0F3; --text: #14161C; --text2: #5D6472; --text3: #8A909C;
+  --line: #E5E8EE; --income: #167A40; --expense: #C42F35;
+  --shadow: 0 1px 2px rgba(27,35,51,.05), 0 4px 14px rgba(27,35,51,.06);
+  --brand-text: var(--brand);
+}
+.dark {
+  --bg: #0B0B0F; --card: #17171C; --raised: #1F1F26; --text: #F3F4F6; --text2: #9AA0AC; --text3: #6B7180;
+  --line: #24242C; --income: #34C77B; --expense: #F0616D;
+  --shadow: none;
+  --brand-text: var(--brand-dark-text);
+}
+
+.status { height: 40px; padding: 14px 28px 0; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+.status .ic { display: flex; gap: 5px; font-size: 15px; }
+
+.topbar { height: 52px; padding: 0 8px; display: flex; align-items: center; }
+.iconbtn { width: 44px; height: 44px; display: grid; place-items: center; font-size: 23px; color: var(--text); }
+.bal { flex: 1; text-align: center; line-height: 1.15; }
+.bal small { display: block; font-size: 11.5px; color: var(--text2); font-weight: 500; }
+.bal b { font-family: Manrope; font-weight: 800; font-size: 17px; }
+.bal b i { font-size: 13px; color: var(--text3); vertical-align: 1px; margin-left: 4px; }
+
+.content { flex: 1; min-height: 0; padding: 2px 18px 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.monthrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.month { display: flex; align-items: center; gap: 2px; }
+.month h2 { font-family: Manrope; font-weight: 700; font-size: 20px; letter-spacing: -0.3px; margin: 0 6px; }
+.month .chev { width: 32px; height: 32px; display: grid; place-items: center; color: var(--text2); font-size: 18px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 7px 12px; border-radius: 999px; background: var(--raised); font-size: 13px; font-weight: 600; color: var(--text); }
+.chip i { font-size: 12px; color: var(--text2); }
+
+.summary .lbl { font-size: 13px; color: var(--text2); font-weight: 500; }
+.summary .big { font-family: Manrope; font-weight: 800; font-size: 32px; letter-spacing: -1px; line-height: 1.1; margin: 1px 0 4px; font-feature-settings: "tnum"; }
+.summary .sub { display: flex; gap: 14px; font-size: 13px; color: var(--text2); font-weight: 500; }
+.summary .sub b { font-weight: 700; }
+.inc { color: var(--income); }
+
+.split { display: flex; gap: 3px; height: 8px; margin: 12px 0 8px; }
+.split span { border-radius: 5px; height: 100%; }
+.split span.on { outline: 2px solid var(--text); outline-offset: 2px; }
+.legend { display: flex; flex-wrap: nowrap; gap: 12px; font-size: 11.5px; color: var(--text2); font-weight: 500; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.legend b { color: var(--text); font-weight: 600; }
+
+.calcard { margin: 12px -18px 0; background: var(--card); padding: 8px 6px 4px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.content > * { flex-shrink: 0; }
+.dayhead .addbtn { display: inline-flex; align-items: center; gap: 4px; padding: 7px 12px; border-radius: 999px; background: var(--brand); color: var(--on-brand); font-size: 12.5px; font-weight: 600; }
+.dayhead .meta { display: flex; align-items: center; gap: 10px; }
+.summrow { display: flex; align-items: flex-end; justify-content: space-between; }
+.streakchip { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 999px; background: var(--raised); font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.streakchip i { color: #F2994A; font-size: 14px; }
+.dayhead { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 2px; }
+.dayhead b { font-family: Manrope; font-weight: 700; font-size: 16px; }
+.dayhead span { font-size: 12.5px; color: var(--text2); font-weight: 500; }
+.dayhead span em { font-style: normal; color: var(--text); font-weight: 700; }
+.row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row .cat { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; flex: none; }
+.light .row .cat { color: #fff; }
+.row .t { flex: 1; min-width: 0; }
+.row .t b { display: block; font-size: 14.5px; font-weight: 600; }
+.row .t small { font-size: 12px; color: var(--text2); }
+.row .a { font-family: Manrope; font-weight: 700; font-size: 15px; }
+.row.faded { opacity: .35; }
+.wk { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11.5px; font-weight: 600; color: var(--text3); margin-bottom: 4px; }
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 2px; }
+.cell { height: 46px; border-radius: 12px; margin: 0 3px; position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 6px; }
+.cell .d { font-family: Manrope; font-weight: 700; font-size: 14.5px; }
+.cell.out .d { color: var(--text3); opacity: .55; }
+.cell.future .d { color: var(--text3); }
+.cell .bar { position: absolute; bottom: 7px; width: 22px; height: 13px; display: flex; align-items: flex-end; justify-content: center; }
+.cell .bar span { width: 100%; border-radius: 3px; background: var(--brand); }
+.cell .inc-dot { position: absolute; top: 6px; right: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--income); }
+.cell.today { box-shadow: inset 0 0 0 2px var(--brand); }
+.cell.sel { background: var(--brand); }
+.cell.sel .d { color: var(--on-brand); }
+.cell.sel .bar span { background: var(--on-brand); opacity: .9; }
+.cell.sel .inc-dot { background: var(--on-brand); }
+.cell.dim { opacity: .28; }
+.cell.hi .bar span { background: var(--brand); }
+
+.foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.streak { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text); }
+.streak i { color: #F2994A; font-size: 17px; }
+.pace { font-size: 12.5px; color: var(--text2); font-weight: 500; }
+.pace b { color: var(--text); font-weight: 700; }
+
+.hint { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; background: var(--card); border-radius: 16px; box-shadow: var(--shadow); font-size: 12.5px; color: var(--text2); }
+.hint .cat { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 18px; flex: none; }
+.hint b { color: var(--text); font-weight: 600; display: block; font-size: 13.5px; margin-bottom: 1px; }
+.hint .amt { margin-left: auto; font-family: Manrope; font-weight: 700; color: var(--text); font-size: 14.5px; }
+.light .hint .cat { color: #fff; }
+
+.nav { flex: none; height: 84px; background: var(--card); border-top: 1px solid var(--line); display: flex; padding: 10px 6px 0; position: relative; }
+.dark .nav { border-top-color: var(--line); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text2); }
+.tab .pill { width: 60px; height: 32px; border-radius: 16px; display: grid; place-items: center; font-size: 22px; }
+.tab.on { color: var(--text); }
+.tab.on .pill { background: var(--brand-soft); color: var(--brand-text); }
+.fab {
+  position: absolute; right: 18px; bottom: 100px; width: 58px; height: 58px; border-radius: 18px;
+  background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font-size: 26px;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,.35);
+}
+.homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; border-radius: 2px; background: var(--text); opacity: .85; }
+</style>
+</head>
+<body>
+<div class="board-head">
+  <h1>TYF · Calendar redesign</h1>
+  <p><span class="swatch"><i id="sw"></i><span id="swname"></span></span></p>
+</div>
+<div class="phones" id="phones"></div>
+
+<script>
+const THEMES = {
+  indigo: { name: 'Indigo', brand: '#5B5BD6', darkText: '#8B8BFF', onBrand: '#FFFFFF', note: 'Indigo #5B5BD6 · white text 5.4:1' },
+  blue:   { name: 'Blue',   brand: '#2E6BE6', darkText: '#6E9CFF', onBrand: '#FFFFFF', note: 'Blue #2E6BE6 · white text 4.8:1' },
+  mint:   { name: 'Mint',   brand: '#2FBF71', darkText: '#3DD68C', onBrand: '#07140D', note: 'Mint #2FBF71 · dark text 8.2:1', lightText: '#13804A' },
+};
+const key = (location.hash || '#indigo').slice(1);
+const T = THEMES[key];
+document.getElementById('sw').style.background = T.brand;
+document.getElementById('swname').textContent = T.note;
+
+// November 2026: the 1st is a Sunday. Monday-first grid, today = 28.
+const spend = {2:1200,3:450,4:2800,5:300,6:950,7:4100,8:1600,9:0,10:780,11:1340,12:520,13:2300,14:3650,15:900,
+  16:410,17:0,18:1750,19:620,20:1180,21:2950,22:840,23:300,24:1500,25:690,26:0,27:1220,28:520};
+const income = new Set([1, 15]);
+const foodDays = new Set([2,4,7,11,13,14,18,21,25,27]);
+const max = Math.max(...Object.values(spend));
+
+function grid(mode, filterFood) {
+  let cells = '';
+  const days = [];
+  for (let d = 26; d <= 31; d++) days.push({ d, out: true });
+  for (let d = 1; d <= 30; d++) days.push({ d });
+  for (let d = 1; d <= 6; d++) days.push({ d, out: true });
+  for (const x of days) {
+    const cls = ['cell'];
+    if (x.out) cls.push('out');
+    const s = !x.out ? (spend[x.d] || 0) : 0;
+    if (!x.out && x.d > 28) cls.push('future');
+    if (!x.out && x.d === 28) cls.push('today');
+    if (!x.out && x.d === 25 && mode === 'light') cls.push('sel');
+    if (!x.out && x.d === 21 && mode === 'dark') cls.push('sel');
+    if (filterFood && !x.out && x.d <= 28 && !foodDays.has(x.d)) cls.push('dim');
+    const h = s ? Math.max(3, Math.round(14 * s / max)) : 0;
+    cells += `<div class="${cls.join(' ')}">
+      <span class="d">${x.d}</span>
+      ${!x.out && income.has(x.d) ? '<span class="inc-dot"></span>' : ''}
+      ${h ? `<span class="bar"><span style="height:${h}px"></span></span>` : ''}
+    </div>`;
+  }
+  return cells;
+}
+
+const cats = [
+  { n: 'Food', p: 32, c: '#F2994A' },
+  { n: 'Bills', p: 24, c: '#56A8F5' },
+  { n: 'Shopping', p: 18, c: '#EF5DA8' },
+  { n: 'Travel', p: 14, c: '#2EC4C4' },
+  { n: 'Other', p: 12, c: '#9AA0AC' },
+];
+
+function screen(mode) {
+  const food = mode === 'dark'; // dark shows the "tap a category" state
+  const split = cats.map((c, i) => `<span class="${food && i === 0 ? 'on' : ''}" style="flex:${c.p};background:${c.c};${food && i ? 'opacity:.3' : ''}"></span>`).join('');
+  const legend = cats.slice(0, 3).map(c => `<span><i style="background:${c.c}"></i>${c.n} <b>${c.p}%</b></span>`).join('') + '<span>+2 more</span>';
+  const catStyle = mode === 'dark'
+    ? 'background:rgba(242,153,74,.16);color:#F2994A'
+    : 'background:#F2994A';
+  const selDay = mode === 'dark' ? 'Sat 21 Nov' : 'Wed 25 Nov';
+  const selAmt = mode === 'dark' ? '₹2,950' : '₹690';
+  const entries = mode === 'dark'
+    ? [ { t: 'Dinner at Barbeque Nation', s: 'Food · Card · 9:20 pm', a: '−2,150', c: '#F2994A', ic: 'fork-knife' },
+        { t: 'PVR · Movie tickets', s: 'Entertainment · UPI · 6:05 pm', a: '−800', c: '#A06BF0', ic: 'film-slate', faded: true } ]
+    : [ { t: 'Groceries · BigBasket', s: 'Food · UPI · 8:40 pm', a: '−420', c: '#F2994A', ic: 'shopping-cart' },
+        { t: 'Uber to office', s: 'Travel · UPI · 9:15 am', a: '−270', c: '#2EC4C4', ic: 'car' },
+        { t: 'Chai & snacks', s: 'Food · Cash · 4:30 pm', a: '−0', c: '#F2994A', ic: 'coffee' } ];
+  const dayCount = mode === 'dark' ? '2 entries' : '2 entries';
+  const rows = entries.slice(0, 2).map(e => `<div class="row${e.faded ? ' faded' : ''}">
+      <span class="cat" style="${mode === 'dark' ? `background:${e.c}29;color:${e.c}` : `background:${e.c}`}"><i class="ph${mode === 'dark' ? '' : '-fill'} ph-${e.ic}"></i></span>
+      <div class="t"><b>${e.t}</b><small>${e.s}</small></div>
+      <span class="a">${e.a.replace('−', '−₹')}</span></div>`).join('');
+  return `
+  <div class="phone"><div class="screen ${mode}">
+    <div class="status"><span>9:41</span><span class="ic"><i class="ph-fill ph-cell-signal-full"></i><i class="ph-fill ph-wifi-high"></i><i class="ph-fill ph-battery-full"></i></span></div>
+    <div class="topbar">
+      <span class="iconbtn"><i class="ph ph-list"></i></span>
+      <div class="bal"><small>Balance</small><b>₹1,24,500<i class="ph ph-eye"></i></b></div>
+      <span class="iconbtn"><i class="ph ph-chat-text"></i></span>
+      <span class="iconbtn"><i class="ph ph-chart-line-up"></i></span>
+    </div>
+    <div class="content">
+      <div class="monthrow">
+        <div class="month"><span class="chev"><i class="ph-bold ph-caret-left"></i></span><h2>November</h2><span class="chev"><i class="ph-bold ph-caret-right"></i></span></div>
+        <span class="chip">Month <i class="ph-bold ph-caret-down"></i></span>
+      </div>
+      <div class="summary">
+        <div class="lbl">${food ? 'Spent on Food this month' : 'Spent this month'}</div>
+        <div class="summrow"><div class="big">${food ? '₹7,869' : '₹24,589'}</div><span class="streakchip"><i class="ph-fill ph-fire"></i>6-day streak</span></div>
+        <div class="sub"><span class="inc">Income <b>₹40,432</b></span><span><b style="color:var(--text)">₹1,210</b>/day left in budget</span></div>
+      </div>
+      <div class="split">${split}</div>
+      <div class="legend">${legend}</div>
+      <div class="calcard">
+        <div class="wk"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div class="grid">${grid(mode, food)}</div>
+      </div>
+      <div class="dayhead"><div><b>${selDay}</b><br><span>${dayCount} · <em>−${selAmt}</em></span></div><span class="addbtn"><i class="ph-bold ph-plus"></i>Add</span></div>
+      ${rows}
+    </div>
+    <div class="nav">
+      <div class="tab on"><span class="pill"><i class="ph-fill ph-calendar-blank"></i></span>Calendar</div>
+      <div class="tab"><span class="pill"><i class="ph ph-chart-pie-slice"></i></span>Budgets</div>
+      <div class="tab"><span class="pill"><i class="ph ph-receipt"></i></span>History</div>
+      <div class="tab"><span class="pill"><i class="ph ph-chart-line-up"></i></span>Analytics</div>
+    </div>
+    <span class="homebar"></span>
+  </div></div>`;
+}
+
+const root = document.documentElement;
+root.style.setProperty('--brand', T.brand);
+root.style.setProperty('--brand-dark-text', T.darkText);
+root.style.setProperty('--on-brand', T.onBrand);
+document.getElementById('phones').innerHTML =
+  `<div>${screen('light')}<div class="label">Light · tap a day, its entries show below</div></div>` +
+  `<div>${screen('dark')}<div class="label">Dark · Food filter on, 21 Nov selected</div></div>`;
+// brand-soft per mode, and mint needs a darker text tone in light mode
+document.querySelectorAll('.light').forEach(el => {
+  el.style.setProperty('--brand-soft', T.brand + '24');
+  if (T.lightText) el.style.setProperty('--brand-text', T.lightText);
+});
+document.querySelectorAll('.dark').forEach(el => el.style.setProperty('--brand-soft', T.brand + '33'));
+</script>
+</body>
+</html>

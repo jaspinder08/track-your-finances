@@ -63,14 +63,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 label: 'Total Income',
                 paise: data.income,
                 icon: AppIcons.accountBalanceWalletOutlined,
-                color: Theme.of(context).colorScheme.primary,
+                color: FinanceColors.incomeOf(context),
               ),
               const SizedBox(width: 10),
               _TotalTile(
                 label: 'Total Expenses',
                 paise: data.expense,
                 icon: AppIcons.receiptLongOutlined,
-                color: FinanceColors.expense,
+                color: FinanceColors.expenseOf(context),
               ),
             ],
           ),
@@ -289,9 +289,14 @@ class _SavingsCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    // Down and red when overspent or below the last period.
                     Icon(
-                      AppIcons.trendingUpRounded,
-                      color: up ? FinanceColors.income : FinanceColors.expense,
+                      up && saved >= 0
+                          ? AppIcons.trendingUpRounded
+                          : AppIcons.trendingDownRounded,
+                      color: up && saved >= 0
+                          ? FinanceColors.incomeOf(context)
+                          : FinanceColors.expenseOf(context),
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -305,9 +310,24 @@ class _SavingsCard extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
-                  child: AnimatedMoney(
-                    saved.abs(),
-                    style: theme.textTheme.displaySmall?.copyWith(color: on),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Overspent shows as a negative amount, not just a label.
+                      if (saved < 0)
+                        Text(
+                          '−',
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: on,
+                          ),
+                        ),
+                      AnimatedMoney(
+                        saved.abs(),
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: on,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -320,8 +340,8 @@ class _SavingsCard extends StatelessWidget {
                               '${up ? '↑' : '↓'} ${(change.abs() * 100).round()}%',
                           style: TextStyle(
                             color: up
-                                ? FinanceColors.income
-                                : FinanceColors.expense,
+                                ? FinanceColors.incomeOf(context)
+                                : FinanceColors.expenseOf(context),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -361,7 +381,7 @@ class _SavingsRing extends StatelessWidget {
     builder: (_, v, _) => SizedBox.square(
       dimension: 88,
       child: CustomPaint(
-        painter: _ArcPainter(v, FinanceColors.income, stroke: 9),
+        painter: _ArcPainter(v, FinanceColors.incomeOf(context), stroke: 9),
         child: Center(
           child: Container(
             width: 46,
@@ -372,9 +392,9 @@ class _SavingsRing extends StatelessWidget {
             ),
             child: Tooltip(
               message: '${(rate * 100).round()}% of income saved',
-              child: const Icon(
+              child: Icon(
                 AppIcons.pottedPlant,
-                color: FinanceColors.income,
+                color: FinanceColors.incomeOf(context),
                 size: 24,
               ),
             ),
@@ -883,7 +903,7 @@ class _BudgetVsActual extends StatelessWidget {
                             textAlign: TextAlign.right,
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: b.isOver
-                                  ? FinanceColors.expense
+                                  ? FinanceColors.expenseOf(context)
                                   : scheme.onSurfaceVariant,
                             ),
                           ),

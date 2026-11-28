@@ -130,8 +130,8 @@ class EntryTile extends ConsumerWidget {
       if (entry.seriesId != null) 'Recurring',
     ].join(' · ');
     final (sign, color) = switch (entry.type) {
-      EntryType.income => ('+', FinanceColors.income),
-      EntryType.expense => ('−', FinanceColors.expense),
+      EntryType.income => ('+', FinanceColors.incomeOf(context)),
+      EntryType.expense => ('−', FinanceColors.expenseOf(context)),
       _ => ('', theme.colorScheme.onSurface),
     };
 

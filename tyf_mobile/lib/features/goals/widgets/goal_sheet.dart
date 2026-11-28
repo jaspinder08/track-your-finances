@@ -36,7 +36,9 @@ class GoalSheet extends ConsumerWidget {
     if (goal == null) return const SizedBox(height: 120);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final color = goal.isDone ? FinanceColors.income : scheme.primary;
+    final color = goal.isDone
+        ? FinanceColors.incomeOf(context)
+        : scheme.primary;
 
     return SafeArea(
       top: false,

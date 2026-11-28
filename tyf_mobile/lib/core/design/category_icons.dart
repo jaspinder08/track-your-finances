@@ -219,7 +219,7 @@ Color categoryColor(String? name) {
 }
 
 /// The one category tile used everywhere: a rounded square in the
-/// category's colour, softly glowing, with a white icon.
+/// category's colour with a white icon.
 class CategoryTile extends StatelessWidget {
   const CategoryTile({
     super.key,
@@ -252,16 +252,6 @@ class CategoryTile extends StatelessWidget {
             Color.lerp(c, Colors.black, 0.35)!,
           ],
         ),
-        boxShadow: size >= 32
-            ? [
-                BoxShadow(
-                  color: c.withValues(alpha: 0.35),
-                  blurRadius: size * 0.28,
-                  spreadRadius: -size * 0.07,
-                  offset: Offset(0, size * 0.1),
-                ),
-              ]
-            : null,
       ),
       child: CategoryGlyph(glyph, size: size * 0.5, color: Colors.white),
     );

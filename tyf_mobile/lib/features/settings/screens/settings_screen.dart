@@ -12,6 +12,7 @@ import '../../../core/widgets/option_row.dart';
 import '../../help/how_to_screen.dart';
 import '../../support/support.dart';
 import '../../notifications/notifications.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 const _appVersion = '1.0.0';
 
@@ -38,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
         Navigator.of(context).push(appPageRoute<void>(page));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: const InnerAppBar(title: Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [

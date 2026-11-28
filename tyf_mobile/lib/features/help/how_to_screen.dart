@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design/design.dart';
+import '../../core/widgets/inner_app_bar.dart';
 
 /// A short guide to the app, one card per idea.
 class HowToScreen extends StatelessWidget {
@@ -82,7 +83,7 @@ class HowToScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('How to use TYF')),
+      appBar: const InnerAppBar(title: Text('How to use TYF')),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         itemCount: _steps.length,

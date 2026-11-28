@@ -8,7 +8,7 @@ const budgetWarning = Color(0xFFF5A524);
 
 /// Accent while on track, amber from 80%, red when over.
 Color budgetColor(BuildContext context, double ratio) => ratio > 1
-    ? FinanceColors.expense
+    ? FinanceColors.expenseOf(context)
     : ratio >= 0.8
     ? budgetWarning
     : Theme.of(context).colorScheme.primary;

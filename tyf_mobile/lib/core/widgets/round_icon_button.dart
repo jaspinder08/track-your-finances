@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../design/surface.dart';
-
-/// Soft circular button used in the top bar.
+/// Plain icon button used in the top bar: no fill, border or shadow
+/// behind the icon, a standard 48×48 target and round ripple.
 class RoundIconButton extends StatelessWidget {
   const RoundIconButton({
     super.key,
@@ -20,37 +19,18 @@ class RoundIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final light = scheme.isLight;
-    final button = Material(
-      color: light
-          ? Colors.white
-          : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-      shape: light
-          ? CircleBorder(side: BorderSide(color: scheme.cardBorder))
-          : const CircleBorder(),
-
-      child: IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
-        tooltip: tooltip,
-        iconSize: 24,
-        style: IconButton.styleFrom(shape: const CircleBorder()),
-      ),
+    final button = IconButton(
+      icon: Icon(icon),
+      onPressed: onPressed,
+      tooltip: tooltip,
+      iconSize: 24,
+      color: scheme.onSurface,
     );
-    final lifted = light
-        ? DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: scheme.cardShadow,
-            ),
-            child: button,
-          )
-        : button;
-    if (badge == null || badge == 0) return lifted;
+    if (badge == null || badge == 0) return button;
     return Badge.count(
       count: badge!,
       backgroundColor: scheme.primary,
-      child: lifted,
+      child: button,
     );
   }
 }

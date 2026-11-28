@@ -7,6 +7,7 @@ import '../data/account.dart';
 import '../data/csv_export.dart';
 import '../../onboarding/setup_sheet.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 /// Why the sign-in screen is showing.
 enum SignInMode {
@@ -397,7 +398,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       // Locked: back can't skip sign-in (Android back leaves the app).
       canPop: !locked,
       child: Scaffold(
-        appBar: widget.mode == SignInMode.voluntary ? AppBar() : null,
+        appBar: widget.mode == SignInMode.voluntary
+            ? const InnerAppBar()
+            : null,
         body: SafeArea(child: content),
       ),
     );

@@ -10,6 +10,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../data/category_repository.dart';
 import '../widgets/category_editor_sheet.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 /// Which list (expense or income) the Categories page shows.
 final categoryKindViewProvider =
@@ -27,21 +28,7 @@ class CategoriesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(
-      leadingWidth: 72,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: Center(
-          child: IconButton.filledTonal(
-            tooltip: 'Back',
-            style: IconButton.styleFrom(shape: const CircleBorder()),
-            onPressed: () => Navigator.maybePop(context),
-            icon: const Icon(AppIcons.arrowBackRounded),
-          ),
-        ),
-      ),
-      title: const Text('Categories'),
-    ),
+    appBar: const InnerAppBar(title: Text('Categories')),
     floatingActionButton: FloatingActionButton(
       heroTag: 'new-category',
       tooltip: 'New category',

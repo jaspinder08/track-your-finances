@@ -115,20 +115,7 @@ class AppDrawer extends ConsumerWidget {
                       padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: SweepGradient(
-                          colors: [
-                            scheme.primary,
-                            const Color(0xFF8B5CF6),
-                            scheme.primary,
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: scheme.primary.withValues(alpha: 0.4),
-                            blurRadius: 18,
-                            spreadRadius: -4,
-                          ),
-                        ],
+                        color: scheme.primary,
                       ),
                       child: Container(
                         alignment: Alignment.center,
@@ -165,13 +152,7 @@ class AppDrawer extends ConsumerWidget {
                                 if (name != null)
                                   TextSpan(
                                     text: name,
-                                    style: TextStyle(
-                                      color: Color.lerp(
-                                        scheme.primary,
-                                        const Color(0xFFA78BFA),
-                                        0.5,
-                                      ),
-                                    ),
+                                    style: TextStyle(color: scheme.primary),
                                   ),
                               ],
                             ),
@@ -217,7 +198,7 @@ class AppDrawer extends ConsumerWidget {
                               color:
                                   (account.isGuest
                                           ? const Color(0xFFF5A524)
-                                          : FinanceColors.income)
+                                          : FinanceColors.incomeOf(context))
                                       .withValues(alpha: 0.14),
                             ),
                             child: Icon(
@@ -226,7 +207,7 @@ class AppDrawer extends ConsumerWidget {
                                   : AppIcons.verifiedUserOutlined,
                               color: account.isGuest
                                   ? const Color(0xFFF5A524)
-                                  : FinanceColors.income,
+                                  : FinanceColors.incomeOf(context),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -332,7 +313,7 @@ class AppDrawer extends ConsumerWidget {
                   AppIcons.logoutRounded,
                   'Sign out',
                   () => confirmSignOut(context, ref),
-                  tint: const Color(0xFFFF6B78),
+                  tint: FinanceColors.expenseOf(context),
                 ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -367,11 +348,7 @@ class AppDrawer extends ConsumerWidget {
                             Text(
                               'TYF',
                               style: theme.textTheme.titleLarge?.copyWith(
-                                color: Color.lerp(
-                                  scheme.primary,
-                                  const Color(0xFFA78BFA),
-                                  0.5,
-                                ),
+                                color: scheme.primary,
                               ),
                             ),
                             Text(
@@ -383,14 +360,7 @@ class AppDrawer extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      Icon(
-                        AppIcons.heartOutline,
-                        color: Color.lerp(
-                          scheme.primary,
-                          const Color(0xFFA78BFA),
-                          0.5,
-                        ),
-                      ),
+                      Icon(AppIcons.heartOutline, color: scheme.primary),
                     ],
                   ),
                 ),

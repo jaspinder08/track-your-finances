@@ -20,6 +20,7 @@ import '../data/csv_export.dart';
 import 'sign_in_screen.dart';
 import 'sign_out_flow.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 /// Who you are in TYF: name, account and backup, a few numbers.
 class ProfileScreen extends ConsumerWidget {
@@ -45,7 +46,7 @@ class ProfileScreen extends ConsumerWidget {
     final since = account.trialStartedAt;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: const InnerAppBar(title: Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [

@@ -81,7 +81,9 @@ List<Insight> buildInsights({
         left > 0
             ? 'Spend up to this each day for the next $daysLeft days and you still end the month with savings.'
             : 'This month you have spent ${Money.format(-left)} more than came in.',
-        tone: left > 0 ? FinanceColors.income : FinanceColors.expense,
+        tone: left > 0
+            ? FinanceColors.income
+            : FinanceColors.expense,
       ),
     );
   }
@@ -164,7 +166,9 @@ List<Insight> buildInsights({
         vs > 0 ? '🔺' : '🔻',
         vs > 0 ? '$pct% more than last month' : '$pct% less than last month',
         'You have spent ${Money.format(r.expense)} in ${DateFormat.MMMM().format(today)}, against ${Money.format(r.previousExpense)} last month.',
-        tone: vs > 0 ? FinanceColors.expense : FinanceColors.income,
+        tone: vs > 0
+            ? FinanceColors.expense
+            : FinanceColors.income,
       ),
     );
   }
@@ -283,6 +287,12 @@ class _InsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tone = insight.tone;
+    // Title text uses the contrast-safe shade of the finance colours.
+    final textTone = tone == FinanceColors.income
+        ? FinanceColors.incomeOf(context)
+        : tone == FinanceColors.expense
+        ? FinanceColors.expenseOf(context)
+        : tone;
     return AppCard(
       tint: tone,
       padding: const EdgeInsets.all(14),
@@ -302,7 +312,7 @@ class _InsightCard extends StatelessWidget {
                   insight.title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: tone,
+                    color: textTone,
                   ),
                 ),
                 const SizedBox(height: 4),

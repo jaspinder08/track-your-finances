@@ -145,7 +145,9 @@ class _Overview extends StatelessWidget {
                             ? 'left to spend this month'
                             : 'over budget this month',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: left >= 0 ? dim : FinanceColors.expense,
+                          color: left >= 0
+                              ? dim
+                              : FinanceColors.expenseOf(context),
                         ),
                       ),
                     ],
@@ -186,18 +188,18 @@ class _Overview extends StatelessWidget {
                   _Divider(),
                   _Stat(
                     icon: AppIcons.accountBalanceWalletOutlined,
-                    tint: FinanceColors.expense,
+                    tint: FinanceColors.expenseOf(context),
                     label: 'Spent',
                     value: Money.format(spent),
-                    valueColor: FinanceColors.expense,
+                    valueColor: FinanceColors.expenseOf(context),
                   ),
                   _Divider(),
                   _Stat(
                     icon: AppIcons.todayRounded,
-                    tint: FinanceColors.income,
+                    tint: FinanceColors.incomeOf(context),
                     label: perDay > 0 ? 'Per day' : 'Days left',
                     value: perDay > 0 ? Money.format(perDay) : '$daysLeft',
-                    valueColor: FinanceColors.income,
+                    valueColor: FinanceColors.incomeOf(context),
                   ),
                 ],
               ),
@@ -286,7 +288,7 @@ class _Ring extends StatelessWidget {
         child: CustomPaint(
           painter: _RingPainter(
             v.clamp(0, 1).toDouble(),
-            ratio > 1 ? FinanceColors.expense : accent,
+            ratio > 1 ? FinanceColors.expenseOf(context) : accent,
           ),
           child: Center(
             child: Column(

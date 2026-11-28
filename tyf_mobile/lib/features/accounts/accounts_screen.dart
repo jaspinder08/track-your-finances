@@ -14,6 +14,7 @@ import '../transactions/data/transaction_options.dart';
 import '../transactions/screens/add_transaction_screen.dart';
 import 'account_balances.dart';
 import '../../core/design/app_icons.dart';
+import '../../core/widgets/inner_app_bar.dart';
 
 /// Each account's look: tile colour and a short description.
 const _accountStyle = <String, (Color, String)>{
@@ -46,35 +47,14 @@ class AccountsScreen extends ConsumerWidget {
     final on = scheme.onSurface;
     final dim = scheme.onSurfaceVariant;
 
-    Widget round(IconData icon, String tip, VoidCallback onTap) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: IconButton.filledTonal(
-        tooltip: tip,
-        style: IconButton.styleFrom(
-          shape: const CircleBorder(),
-          fixedSize: const Size(48, 48),
-          backgroundColor: scheme.cardFill(0.8),
-        ),
-        onPressed: onTap,
-        icon: Icon(icon),
-      ),
-    );
-
     return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 72,
-        toolbarHeight: 68,
-        leading: round(
-          AppIcons.arrowBackRounded,
-          'Back',
-          () => Navigator.maybePop(context),
-        ),
+      appBar: InnerAppBar(
         title: const Text('Accounts'),
         actions: [
-          round(
-            AppIcons.addRounded,
-            'Add a transaction',
-            () => showAddTransactionScreen(context),
+          IconButton(
+            tooltip: 'Add a transaction',
+            onPressed: () => showAddTransactionScreen(context),
+            icon: const Icon(AppIcons.addRounded),
           ),
         ],
       ),
@@ -157,8 +137,8 @@ class AccountsScreen extends ConsumerWidget {
                                       : AppIcons.arrowDownwardRounded,
                                   size: 16,
                                   color: change >= 0
-                                      ? FinanceColors.income
-                                      : FinanceColors.expense,
+                                      ? FinanceColors.incomeOf(context)
+                                      : FinanceColors.expenseOf(context),
                                 ),
                                 const SizedBox(width: 4),
                                 Flexible(
@@ -363,7 +343,7 @@ class _AccountTile extends ConsumerWidget {
         ? (isCard ? '${Money.format(-paise)} owed' : '−${Money.format(-paise)}')
         : Money.format(paise);
     final valueColor = paise < 0 && !isCard && !hidden
-        ? const Color(0xFFFF6B78)
+        ? FinanceColors.expenseOf(context)
         : scheme.onSurface;
 
     return Material(

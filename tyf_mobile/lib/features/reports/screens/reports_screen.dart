@@ -258,7 +258,9 @@ class _Summary extends StatelessWidget {
                       ? AppIcons.trendingUpRounded
                       : AppIcons.trendingDownRounded,
                   size: 18,
-                  color: vs > 0 ? FinanceColors.income : FinanceColors.expense,
+                  color: vs > 0
+                      ? FinanceColors.incomeOf(context)
+                      : FinanceColors.expenseOf(context),
                 ),
                 const SizedBox(width: 6),
                 Expanded(

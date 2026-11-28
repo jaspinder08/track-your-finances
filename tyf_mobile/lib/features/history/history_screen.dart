@@ -12,6 +12,7 @@ import '../transactions/data/entry_repository.dart';
 import '../transactions/data/transaction_options.dart';
 import '../transactions/widgets/swipe_entry.dart';
 import '../../core/design/app_icons.dart';
+import '../../core/widgets/inner_app_bar.dart';
 
 /// What the History list is narrowed to.
 @immutable
@@ -294,13 +295,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   'Expenses',
                   EntryType.expense,
                   AppIcons.arrowDownwardRounded,
-                  FinanceColors.expense,
+                  FinanceColors.expenseOf(context),
                 ),
                 typePill(
                   'Income',
                   EntryType.income,
                   AppIcons.arrowUpwardRounded,
-                  FinanceColors.income,
+                  FinanceColors.incomeOf(context),
                 ),
                 typePill(
                   'Transfers',
@@ -440,7 +441,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
     if (widget.asTab) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text('All transactions')),
+      appBar: const InnerAppBar(title: Text('All transactions')),
       body: body,
     );
   }
@@ -480,8 +481,8 @@ class _TxCard extends ConsumerWidget {
     ].join(' • ');
 
     final (sign, typeColor, _) = switch (entry.type) {
-      EntryType.income => ('+', FinanceColors.income, 'Income'),
-      EntryType.expense => ('−', FinanceColors.expense, 'Expense'),
+      EntryType.income => ('+', FinanceColors.incomeOf(context), 'Income'),
+      EntryType.expense => ('−', FinanceColors.expenseOf(context), 'Expense'),
       EntryType.goal => ('', const Color(0xFF8B5CF6), 'Goal'),
       _ => ('', scheme.primary, 'Transfer'),
     };

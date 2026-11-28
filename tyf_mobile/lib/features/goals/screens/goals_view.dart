@@ -137,7 +137,9 @@ class _GoalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final color = goal.isDone ? FinanceColors.income : scheme.primary;
+    final color = goal.isDone
+        ? FinanceColors.incomeOf(context)
+        : scheme.primary;
     final subtitle = goal.isDone
         ? 'Reached · ${Money.format(goal.targetPaise)}'
         : goal.isOverdue

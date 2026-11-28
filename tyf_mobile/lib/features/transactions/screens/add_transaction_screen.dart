@@ -14,6 +14,7 @@ import '../data/entry.dart';
 import '../data/entry_repository.dart';
 import '../data/transaction_options.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 export '../data/entry.dart';
 
@@ -292,36 +293,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       // the bottom of the screen, under the keyboard, and show again when
       // it closes. The list pads itself so fields still scroll into view.
       resizeToAvoidBottomInset: false,
+      appBar: InnerAppBar(
+        title: Text(
+          _isGoal
+              ? (_isEditing ? 'Edit goal' : 'New goal')
+              : _isEditing
+              ? 'Edit ${_type.label.toLowerCase()}'
+              : 'Add a transaction',
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-              // Top bar: back, title, close.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 12, 4),
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Back',
-                      onPressed: () => Navigator.maybePop(context),
-                      icon: const Icon(AppIcons.arrowBackRounded),
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _isGoal
-                            ? (_isEditing ? 'Edit goal' : 'New goal')
-                            : _isEditing
-                            ? 'Edit ${_type.label.toLowerCase()}'
-                            : 'Add a transaction',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.fromLTRB(

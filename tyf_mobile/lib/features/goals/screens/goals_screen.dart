@@ -5,6 +5,7 @@ import '../../transactions/data/transaction_options.dart';
 import '../../transactions/screens/add_transaction_screen.dart';
 import 'goals_view.dart';
 import '../../../core/design/app_icons.dart';
+import '../../../core/widgets/inner_app_bar.dart';
 
 /// Goals page, opened from the sidebar. "New goal" is a floating button
 /// (bottom-right, thumb reach) that shrinks to "+" while scrolling down.
@@ -21,7 +22,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Goals')),
+      appBar: const InnerAppBar(title: Text('Goals')),
       // Always there, so adding a goal is one tap from anywhere.
       floatingActionButton: FloatingActionButton(
         tooltip: 'New goal',

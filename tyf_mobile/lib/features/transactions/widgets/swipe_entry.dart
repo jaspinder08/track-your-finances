@@ -47,7 +47,7 @@ class SwipeEntry extends ConsumerWidget {
       ),
       secondaryBackground: bg(
         Alignment.centerRight,
-        FinanceColors.expense,
+        FinanceColors.expenseOf(context),
         AppIcons.deleteOutlineRounded,
         'Delete',
       ),

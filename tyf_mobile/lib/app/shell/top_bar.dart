@@ -67,99 +67,113 @@ class TopBar extends ConsumerWidget {
             tooltip: 'Menu',
           ),
           const Spacer(),
-          GestureDetector(
+          Semantics(
+            container: true,
+            button: onBalance != null,
+            label: hidden
+                ? 'Balance hidden'
+                : 'Balance ${balancePaise < 0 ? 'minus ' : ''}${Money.format(balancePaise.abs())}',
+            hint: onBalance != null ? 'Open accounts' : null,
             onTap: onBalance,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: compact ? 4 : 8,
-              ),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.isLight
-                    ? Colors.white
-                    : theme.colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.6,
-                      ),
-                borderRadius: BorderRadius.circular(28),
-                border: theme.colorScheme.isLight
-                    ? Border.all(color: theme.colorScheme.cardBorder)
-                    : null,
-                boxShadow: theme.colorScheme.cardShadow,
-              ),
-              child: Column(
-                children: [
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    child: compact
-                        ? const SizedBox(width: 0, height: 0)
-                        : Text(
-                            'BALANCE',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              letterSpacing: 1.2,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                  ),
-                  SizedBox(height: compact ? 0 : 2),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    transitionBuilder: (c, a) => FadeTransition(
-                      opacity: a,
-                      child: SlideTransition(
-                        position: Tween(
-                          begin: const Offset(0, 0.3),
-                          end: Offset.zero,
-                        ).animate(a),
-                        child: c,
-                      ),
-                    ),
-                    child: Row(
-                      key: ValueKey('$hidden$balancePaise'),
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          hidden
-                              ? '₹ • • • • •'
-                              : '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: balancePaise < 0
-                                ? FinanceColors.expense
-                                : theme.colorScheme.onSurface,
-                          ),
+            child: GestureDetector(
+              onTap: onBalance,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: compact ? 4 : 8,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.isLight
+                      ? Colors.white
+                      : theme.colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.6,
                         ),
-                        const SizedBox(width: 6),
-                        InkResponse(
-                          radius: 18,
-                          onTap: () =>
-                              ref.read(hideBalanceProvider.notifier).toggle(),
-                          child: Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.colorScheme.primary.withValues(
-                                alpha: 0.16,
+                  borderRadius: BorderRadius.circular(28),
+                  border: theme.colorScheme.isLight
+                      ? Border.all(color: theme.colorScheme.cardBorder)
+                      : null,
+                  boxShadow: theme.colorScheme.cardShadow,
+                ),
+                child: Column(
+                  children: [
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      child: compact
+                          ? const SizedBox(width: 0, height: 0)
+                          : ExcludeSemantics(
+                              child: Text(
+                                'BALANCE',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 1.2,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
-                            child: Icon(
+                    ),
+                    SizedBox(height: compact ? 0 : 2),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (c, a) => FadeTransition(
+                        opacity: a,
+                        child: SlideTransition(
+                          position: Tween(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(a),
+                          child: c,
+                        ),
+                      ),
+                      child: Row(
+                        key: ValueKey('$hidden$balancePaise'),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ExcludeSemantics(
+                            child: Text(
                               hidden
-                                  ? AppIcons.visibilityOffOutlined
-                                  : AppIcons.visibilityOutlined,
-                              size: 16,
-                              color: theme.colorScheme.primary,
-                              semanticLabel: hidden
-                                  ? 'Show balance'
-                                  : 'Hide balance',
+                                  ? '₹ • • • • •'
+                                  : '${balancePaise < 0 ? '−' : ''}${Money.format(balancePaise.abs())}',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: balancePaise < 0
+                                    ? FinanceColors.expenseOf(context)
+                                    : theme.colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Semantics(
+                            container: true,
+                            button: true,
+                            label: hidden ? 'Show balance' : 'Hide balance',
+                            excludeSemantics: true,
+                            child: InkResponse(
+                              radius: 18,
+                              onTap: () => ref
+                                  .read(hideBalanceProvider.notifier)
+                                  .toggle(),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: Icon(
+                                  hidden
+                                      ? AppIcons.visibilityOffOutlined
+                                      : AppIcons.visibilityOutlined,
+                                  size: 16,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  semanticLabel: hidden
+                                      ? 'Show balance'
+                                      : 'Hide balance',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -14,6 +14,7 @@ import '../transactions/data/entry_repository.dart';
 import '../transactions/data/transaction_options.dart';
 import 'sms_parser.dart';
 import 'sms_watch.dart';
+import '../../core/widgets/inner_app_bar.dart';
 
 /// Scans bank and UPI SMS as soon as it opens, then lists what moved.
 /// Transactions not seen before are labelled "New"; add one or all.
@@ -148,7 +149,7 @@ class _SmsScanScreenState extends ConsumerState<SmsScanScreen> {
     final newCount = _found.where((t) => _newKeys.contains(smsKey(t))).length;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: InnerAppBar(
         title: const Text('Scan SMS'),
         actions: [
           if (_stage == _Stage.done)
@@ -341,7 +342,9 @@ class _FoundTile extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isIncome = t.type == EntryType.income;
-    final color = isIncome ? FinanceColors.income : const Color(0xFFFF6B78);
+    final color = isIncome
+        ? FinanceColors.incomeOf(context)
+        : FinanceColors.expenseOf(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
       decoration: BoxDecoration(
