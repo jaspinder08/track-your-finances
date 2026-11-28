@@ -79,9 +79,7 @@ class FloatingNavBar extends StatelessWidget {
           // Flat surface with a hairline and a neutral lift: no accent
           // gradient or coloured glow.
           decoration: BoxDecoration(
-            color: light
-                ? Colors.white
-                : Color.lerp(scheme.surfaceContainerHigh, scheme.primary, 0.06),
+            color: light ? Colors.white : scheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(36),
             border: Border.all(color: scheme.cardBorder),
             boxShadow: light

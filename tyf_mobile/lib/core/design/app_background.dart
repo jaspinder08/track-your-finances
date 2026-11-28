@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// The app's backdrop, behind every screen: a flat canvas, near-black in
-/// dark mode and a pale grey in light mode, each tinted faintly with the
-/// accent so changing it in Settings still shifts the mood.
+/// The app's backdrop, behind every screen: a flat neutral canvas, deep
+/// charcoal in dark mode and a pale off-white in light mode.
 ///
 /// Scaffolds are transparent (see AppTheme), so pages show this through.
 /// Every route paints its own, so pages sliding over each other stay solid.
@@ -17,14 +16,17 @@ class AppBackground extends StatelessWidget {
     final base = theme.brightness == Brightness.dark
         ? backgroundBase(accent)
         : lightBackgroundBase(accent);
-    return ColoredBox(color: base, child: child);
+    return AnimatedContainer(
+      duration: kThemeAnimationDuration,
+      curve: Curves.easeOut,
+      color: base,
+      child: child,
+    );
   }
 
   /// The canvas colour in dark mode (also used for system bars).
-  static Color backgroundBase(Color accent) =>
-      Color.lerp(const Color(0xFF0A0A0F), accent, 0.05)!;
+  static Color backgroundBase(Color accent) => const Color(0xFF0D0F14);
 
   /// The canvas colour in light mode.
-  static Color lightBackgroundBase(Color accent) =>
-      Color.lerp(const Color(0xFFF3F4F7), accent, 0.015)!;
+  static Color lightBackgroundBase(Color accent) => const Color(0xFFF5F6FA);
 }

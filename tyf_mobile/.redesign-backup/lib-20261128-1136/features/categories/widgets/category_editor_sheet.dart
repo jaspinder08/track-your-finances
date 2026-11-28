@@ -1,0 +1,316 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/design/category_icons.dart';
+
+import '../../transactions/data/entry_repository.dart';
+import '../../transactions/data/transaction_options.dart';
+import '../data/category_repository.dart';
+import '../../../core/design/app_icons.dart';
+
+/// Opens the editor for a new category, or for [existing] if given.
+Future<void> showCategoryEditor(
+  BuildContext context, {
+  required CategoryKind kind,
+  CategoryOption? existing,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final msg = await showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    showDragHandle: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+    ),
+    builder: (_) => CategoryEditorSheet(kind: kind, existing: existing),
+  );
+  if (msg != null) {
+    messenger.showSnackBar(
+      SnackBar(behavior: SnackBarBehavior.floating, content: Text(msg)),
+    );
+  }
+}
+
+class CategoryEditorSheet extends ConsumerStatefulWidget {
+  const CategoryEditorSheet({super.key, required this.kind, this.existing});
+  final CategoryKind kind;
+  final CategoryOption? existing;
+
+  @override
+  ConsumerState<CategoryEditorSheet> createState() => _State();
+}
+
+class _State extends ConsumerState<CategoryEditorSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final _name = TextEditingController(text: widget.existing?.name);
+  final _sub = TextEditingController();
+  late String _emoji = widget.existing?.emoji ?? CategoryIcons.encode('tag');
+  late final List<String> _subs = [...?widget.existing?.subcategories];
+  String? _subError;
+
+  bool get _editing => widget.existing != null;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _sub.dispose();
+    super.dispose();
+  }
+
+  void _addSub() {
+    final s = _sub.text.trim();
+    if (s.isEmpty) return;
+    if (_subs.any((x) => x.toLowerCase() == s.toLowerCase())) {
+      setState(() => _subError = '"$s" is already in the list');
+      return;
+    }
+    setState(() {
+      _subs.add(s);
+      _subError = null;
+      _sub.clear();
+    });
+  }
+
+  Future<void> _save() async {
+    _addSub(); // keep anything typed but not yet added
+    if (!_formKey.currentState!.validate()) return;
+    final c = CategoryOption(_name.text.trim(), _emoji, List.of(_subs));
+    final n = ref.read(categoriesProvider.notifier);
+    if (_editing) {
+      await n.replace(widget.kind, widget.existing!.name, c);
+    } else {
+      await n.add(widget.kind, c);
+    }
+    if (mounted) {
+      Navigator.pop(context, '${c.name} ${_editing ? 'updated' : 'added'}');
+    }
+  }
+
+  Future<void> _delete() async {
+    final name = widget.existing!.name;
+    final used = (ref.read(entriesProvider).value ?? const [])
+        .where(
+          (e) => e.type == widget.kind.entryType && e.data.category == name,
+        )
+        .length;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete $name?'),
+        content: Text(
+          used == 0
+              ? 'It isn\'t used by any entries.'
+              : '$used ${used == 1 ? 'entry keeps' : 'entries keep'} the name "$name", but you won\'t be able to pick it for new ones.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(categoriesProvider.notifier).remove(widget.kind, name);
+    if (mounted) Navigator.pop(context, '$name deleted');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
+              child: Row(
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (c, a) =>
+                        ScaleTransition(scale: a, child: c),
+                    child: CategoryTile(
+                      key: ValueKey(_emoji),
+                      name: widget.existing?.name,
+                      glyph: _emoji,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _editing ? 'Edit category' : 'New category',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        Text(
+                          '${widget.kind.label} category',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton.filled(
+                    tooltip: 'Save',
+                    style: IconButton.styleFrom(shape: const CircleBorder()),
+                    onPressed: _save,
+                    icon: const Icon(AppIcons.checkRounded),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  16,
+                  20,
+                  16 + MediaQuery.paddingOf(context).bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _name,
+                      textCapitalization: TextCapitalization.words,
+                      maxLength: 24,
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        prefixIcon: Icon(AppIcons.labelOutline),
+                        counterText: '',
+                      ),
+                      validator: (v) {
+                        final s = v?.trim() ?? '';
+                        if (s.isEmpty) return 'Give it a name';
+                        final taken = ref
+                            .read(categoriesProvider.notifier)
+                            .nameTaken(
+                              widget.kind,
+                              s,
+                              except: widget.existing?.name,
+                            );
+                        return taken ? 'You already have "$s"' : null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _label(context, 'Icon'),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final e in CategoryIcons.all.keys.map(
+                          CategoryIcons.encode,
+                        ))
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => setState(() => _emoji = e),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: 44,
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: e == _emoji
+                                    ? scheme.primary.withValues(alpha: 0.14)
+                                    : scheme.surfaceContainerHighest.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: e == _emoji
+                                      ? scheme.primary
+                                      : Colors.transparent,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: CategoryGlyph(
+                                e,
+                                color: e == _emoji
+                                    ? scheme.primary
+                                    : scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _label(context, 'Subcategories (optional)'),
+                    if (_subs.isNotEmpty) ...[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final s in _subs)
+                            InputChip(
+                              label: Text(s),
+                              onDeleted: () => setState(() => _subs.remove(s)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    TextField(
+                      controller: _sub,
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: (_) => _addSub(),
+                      decoration: InputDecoration(
+                        labelText: 'Add a subcategory',
+                        prefixIcon: const Icon(
+                          AppIcons.subdirectoryArrowRightRounded,
+                        ),
+                        errorText: _subError,
+                        suffixIcon: IconButton(
+                          tooltip: 'Add subcategory',
+                          icon: const Icon(AppIcons.addCircleRounded),
+                          color: scheme.primary,
+                          onPressed: _addSub,
+                        ),
+                      ),
+                    ),
+                    if (_editing) ...[
+                      const SizedBox(height: 20),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: scheme.error,
+                        ),
+                        onPressed: _delete,
+                        icon: const Icon(AppIcons.deleteOutline),
+                        label: const Text('Delete category'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _label(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.only(left: 4, bottom: 10),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    ),
+  );
+}

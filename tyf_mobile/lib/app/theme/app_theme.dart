@@ -71,22 +71,19 @@ class AppTheme {
 
   static ThemeData light(AccentColor accent) {
     const brightness = Brightness.light;
-    Color tint(int base, double amount) =>
-        Color.lerp(Color(base), accent.color, amount)!;
     final scheme = ColorScheme.fromSeed(
       seedColor: accent.color,
       brightness: brightness,
       primary: accent.color,
       onPrimary: onAccent(accent.color),
-      // Clean, bright surfaces with a soft hint of the chosen accent
-      // Crisp white surfaces on a neutral grey scale, barely tinted, so
-      // cards read as clean paper and the accent does the colouring.
+      // Crisp white and neutral grey surfaces so cards read as clean paper
+      // and the accent is used strictly for interactive highlights.
       surface: const Color(0xFFFFFFFF),
       surfaceContainerLowest: const Color(0xFFFFFFFF),
-      surfaceContainerLow: tint(0xFFF8F9FB, 0.01),
-      surfaceContainer: tint(0xFFF2F4F7, 0.015),
-      surfaceContainerHigh: tint(0xFFECEFF3, 0.02),
-      surfaceContainerHighest: tint(0xFFE6E9EE, 0.025),
+      surfaceContainerLow: const Color(0xFFF8F9FB),
+      surfaceContainer: const Color(0xFFF2F4F7),
+      surfaceContainerHigh: const Color(0xFFECEFF3),
+      surfaceContainerHighest: const Color(0xFFE6E9EE),
       onSurface: const Color(0xFF151821),
       onSurfaceVariant: const Color(0xFF5D6472),
       outline: const Color(0xFFB9BFCA),
@@ -231,8 +228,6 @@ class AppTheme {
 
   static ThemeData dark(AccentColor accent) {
     const brightness = Brightness.dark;
-    Color tint(int base, double amount) =>
-        Color.lerp(Color(base), accent.color, amount)!;
     final scheme = ColorScheme.fromSeed(
       seedColor: accent.color,
       brightness: brightness,
@@ -240,12 +235,12 @@ class AppTheme {
       // Readable text on the accent in both themes (M3's dark onPrimary
       // is a dark tint that reads poorly on a saturated accent).
       onPrimary: onAccent(accent.color),
-      // Sheets, dialogs and the sidebar: dark, with a hint of the accent.
-      surface: tint(0xFF141419, 0.05),
-      surfaceContainerLow: tint(0xFF18181E, 0.06),
-      surfaceContainer: tint(0xFF1C1C23, 0.07),
-      surfaceContainerHigh: tint(0xFF22222A, 0.08),
-      surfaceContainerHighest: tint(0xFF2A2A33, 0.09),
+      // Neutral charcoal surfaces without accent wash.
+      surface: const Color(0xFF13161E),
+      surfaceContainerLow: const Color(0xFF161A23),
+      surfaceContainer: const Color(0xFF1B1F2A),
+      surfaceContainerHigh: const Color(0xFF212633),
+      surfaceContainerHighest: const Color(0xFF282E3D),
     );
 
     return ThemeData(
